@@ -112,8 +112,8 @@ void AGuildRunnerPawn::CameraMove(const FInputActionValue& Value)
 	bInterpolating_CameraMove = true;
 	MoveAxis *= CameraMoveSpeed;
 
-	const auto ForwardVector = GetActorForwardVector() * MoveAxis.X;
-	const auto RightVector = GetActorRightVector() * MoveAxis.Y;
+	const auto ForwardVector = GetActorForwardVector() * -MoveAxis.Y;
+	const auto RightVector = GetActorRightVector() * MoveAxis.X;
 	const auto MoveDirection = ForwardVector + RightVector;
 	DesiredLocation = DesiredLocation + MoveDirection;
 }
