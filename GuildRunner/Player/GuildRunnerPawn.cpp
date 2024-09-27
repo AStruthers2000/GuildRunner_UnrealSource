@@ -102,7 +102,7 @@ void AGuildRunnerPawn::CameraZoom(const FInputActionValue& Value)
 	const auto ZoomValue = Value.Get<float>();
 	
 	bInterpolating_CameraZoom = true;
-	DesiredZoom = FMath::Clamp(DesiredZoom + ZoomValue * CameraZoomSpeed, 100, 5000);
+	DesiredZoom = FMath::Clamp(DesiredZoom + ZoomValue * CameraZoomSpeed, CameraZoomMin, CameraZoomMax);
 }
 
 void AGuildRunnerPawn::CameraMove(const FInputActionValue& Value)
@@ -124,5 +124,5 @@ void AGuildRunnerPawn::CameraFixedRotate(const FInputActionValue& Value)
 	RotateValue = RotateValue < 0 ? -1 : 1;
 	
 	bInterpolating_CameraRotation = true;
-	DesiredRotation = UKismetMathLibrary::ComposeRotators(DesiredRotation, FRotator(0, 45.f * RotateValue, 0));
+	DesiredRotation = UKismetMathLibrary::ComposeRotators(DesiredRotation, FRotator(0, CameraRotationAngle * RotateValue, 0));
 }

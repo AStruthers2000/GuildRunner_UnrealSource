@@ -18,48 +18,58 @@ class GUILDRUNNER_API AGuildRunnerPawn : public APawn
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* MainCamera;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
-
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* CombatCameraMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* CombatCameraZoomAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* CombatCameraMoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* CombatCameraFixedRotateAction;
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	//float SpringArmTargetLength = 700.f;
 
+	//Minimum spring arm length
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
+	float CameraZoomMin = 100.f;
+
+	//Maximum spring arm length
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
+	float CameraZoomMax = 5000.f;
+
+	//Speed of camera zoom input response 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraZoomSpeed = 40.f;
 
+	//Camera zoom interpolation speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float ZoomInterpolationSpeed = 10.f;
-
+	
+	//Speed of camera movement input response
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraMoveSpeed = 40.f;
 
+	//Camera movement interpolation speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float MoveInterpolationSpeed = 10.f;
 
+	//Degrees of camera movement for single button press
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
-	float CameraRotationSpeed = 40.f;
+	float CameraRotationAngle = 45.f;
 
+	//Camera rotation interpolation speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float RotateInterpolationSpeed = 10.f;
-
-	
-	
 
 public:
 	// Sets default values for this pawn's properties
