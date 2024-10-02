@@ -31,26 +31,24 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<EGridShape> GridShape = Square;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
+	bool bRefreshGrid;
 	
 public:	
 	// Sets default values for this actor's properties
 	ACombatGrid();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape);
+	FVector GetTileLocationFromGridIndex(FVector2D GridIndex) const;
+	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
+
 
 	//UFUNCTION(BlueprintCallable)
 	const FGridShapeData* GetCurrentShapeData() const;
-
+	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
 	FVector GridBottomLeftCornerLocation;
 
 #if WITH_EDITOR
