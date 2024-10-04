@@ -29,15 +29,19 @@ ACombatGrid::ACombatGrid()
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ACombatGrid::ACombatGrid]: Could not find Grid Shape Data table."));
 	}
-
-	SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
+	bRefreshGrid = false;
+	//SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
 }
 
 #if WITH_EDITOR
 void ACombatGrid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
+	if(bRefreshGrid)
+	{
+		SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
+		bRefreshGrid = false;
+	}
 }
 #endif
 
@@ -57,7 +61,8 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 	InstancedGridMesh->ClearInstances();
 
 	//create new grid from current selected instance
-	if(const auto* RowData = GetCurrentShapeData())
+	const auto* RowData = GetCurrentShapeData();
+	if(RowData && GridShape != NoDefinedShape)
 	{
 		InstancedGridMesh->SetStaticMesh(RowData->FlatMesh);
 		InstancedGridMesh->SetMaterial(0, RowData->FlatBorderMaterial);
@@ -74,11 +79,12 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 			const auto GridTileY = GridShape == Hexagon ? GridTileCount.Y * 2 : GridTileCount.Y;
 			//if GridShape is a hexagon and x is odd, we want to start on index 1. in all other cases, start at index 0
 			const auto GridOffsetY = GridShape == Hexagon && x % 2 != 0 ? 1 : 0;
+			
 			for(int y = GridOffsetY; y < GridTileY; y++)
 			{
 				const FVector2D Index = FVector2D(x, y); 
 				
-				TileTransform.SetLocation(GetTileLocationFromGridIndex(Index));
+				TileTransform.SetLocation(GetTileLocationFromGridIndex(Index) + FVector(0, 0, 1.f));
 				TileTransform.SetRotation(GetTileRotationFromGridIndex(Index).Quaternion());
 				InstancesToAdd.Add(TileTransform);
 

@@ -36,8 +36,8 @@ class GUILDRUNNER_API AGuildRunnerPawn : public APawn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* CombatCameraFixedRotateAction;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
-	//float SpringArmTargetLength = 700.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
+	float SpringArmTargetLength = 700.f;
 
 	//Minimum spring arm length
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))

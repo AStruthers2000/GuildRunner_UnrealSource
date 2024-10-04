@@ -23,7 +23,7 @@ AGuildRunnerPawn::AGuildRunnerPawn()
     SpringArm->SetupAttachment(RootComponent);
     MainCamera->SetupAttachment(SpringArm);
 
-    SpringArm->TargetArmLength = 700.f;
+    SpringArm->TargetArmLength = SpringArmTargetLength;
 	SpringArm->bDoCollisionTest = false;
 	SpringArm->SetRelativeRotation(FRotator(-60, 0, 0));
 }
