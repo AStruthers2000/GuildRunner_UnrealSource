@@ -33,6 +33,9 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 	TEnumAsByte<EGridShape> GridShape = Square;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
+	float GridOffsetFromGround = 5.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	bool bRefreshGrid;
 	
 public:	
@@ -41,11 +44,11 @@ public:
 
 private:
 	UFUNCTION(BlueprintCallable)
-	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape);
+	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
 	FVector GetTileLocationFromGridIndex(FVector2D GridIndex) const;
 	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
 
-
+	
 	//UFUNCTION(BlueprintCallable)
 	const FGridShapeData* GetCurrentShapeData() const;
 	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
@@ -53,6 +56,10 @@ private:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetGridBottomLeftCornerLocation() const { return GridBottomLeftCornerLocation; }
+	UFUNCTION(BlueprintCallable)
+	void SetGridOffsetFromGround(const float Offset);
+
+	bool TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

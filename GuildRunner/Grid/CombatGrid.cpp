@@ -47,7 +47,7 @@ void ACombatGrid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 
 
 void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions,
-                            TEnumAsByte<EGridShape> TileShape)
+                            TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning)
 {
 	//initialize global variables
 	GridCenterLocation = CentralSpawnLocation;
@@ -66,6 +66,7 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 	{
 		InstancedGridMesh->SetStaticMesh(RowData->FlatMesh);
 		InstancedGridMesh->SetMaterial(0, RowData->FlatBorderMaterial);
+		SetGridOffsetFromGround(GridOffsetFromGround);
 
 		TArray<FTransform> InstancesToAdd;
 		FTransform TileTransform;
@@ -73,26 +74,78 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 		const auto TileScale = GridTileSize / RowData->MeshSize;
 		TileTransform.SetScale3D(TileScale);
 
-		for (int x = 0; x < GridTileCount.X; x++)
+		for (int32 x = 0; x < GridTileCount.X; x++)
 		{
 			//modify for loop because hexagons have to be special
 			const auto GridTileY = GridShape == Hexagon ? GridTileCount.Y * 2 : GridTileCount.Y;
 			//if GridShape is a hexagon and x is odd, we want to start on index 1. in all other cases, start at index 0
 			const auto GridOffsetY = GridShape == Hexagon && x % 2 != 0 ? 1 : 0;
 			
-			for(int y = GridOffsetY; y < GridTileY; y++)
+			for(int32 y = GridOffsetY; y < GridTileY; y++)
 			{
-				const FVector2D Index = FVector2D(x, y); 
+				const auto Index = FVector2D(x, y);
 				
-				TileTransform.SetLocation(GetTileLocationFromGridIndex(Index) + FVector(0, 0, 1.f));
+				TileTransform.SetLocation(GetTileLocationFromGridIndex(Index));
 				TileTransform.SetRotation(GetTileRotationFromGridIndex(Index).Quaternion());
-				InstancesToAdd.Add(TileTransform);
+
+				if(bUseEnvironmentForGridSpawning)
+				{
+					FVector GroundLocation;
+					if(TraceForGround(TileTransform.GetLocation(), GroundLocation))
+					{
+						TileTransform.SetLocation(GroundLocation);
+						InstancesToAdd.Add(TileTransform);
+					}
+				}
+				else
+				{
+					InstancesToAdd.Add(TileTransform);
+				}
 
 				if(GridShape == Hexagon) ++y;
 			}
 		}
-		InstancedGridMesh->AddInstances(InstancesToAdd, false, true);
+		InstancedGridMesh->AddInstances(InstancesToAdd, false, false);
 	}
+}
+
+void ACombatGrid::SetGridOffsetFromGround(const float Offset)
+{
+	GridOffsetFromGround = Offset;
+	InstancedGridMesh->SetWorldLocation(FVector(0.f, 0.f, Offset));
+}
+
+bool ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitLocation) const
+{
+	TArray<FHitResult> Hits;
+	const auto TraceStart = Location + FVector(0.f, 0.f, 10000.f);
+	const auto TraceEnd = Location - FVector(0.f, 0.f, 10000.f);
+	const auto TraceRadius = GridTileSize.X / GridShape == Triangle ? 5.f : GridShape == Hexagon ? 4.f : 3.f;
+	FCollisionQueryParams Params;
+	Params.bTraceComplex = false;
+	Params.AddIgnoredActor(this);
+	Params.TraceTag = "Environment Trace";
+	
+	FCollisionResponseParams Responses;
+	bool bHit = GetWorld() ? GetWorld()->SweepMultiByChannel(
+		Hits,
+		TraceStart,
+		TraceEnd,
+		FQuat::Identity,
+		ECC_GameTraceChannel1,
+		FCollisionShape::MakeSphere(TraceRadius),
+		Params,
+		Responses) : false;
+
+	if(Hits.Num() == 0 || bHit == false)
+	{
+		Out_HitLocation = Location;
+		return false;
+	}
+
+	const auto ModifiedZ = FMath::GridSnap(Hits[0].Location.Z, GridTileSize.Z) - TraceRadius;
+	Out_HitLocation = FVector(Location.X, Location.Y, ModifiedZ);
+	return true;
 }
 
 FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) const
@@ -121,7 +174,7 @@ FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) con
 FRotator ACombatGrid::GetTileRotationFromGridIndex(const FVector2D GridIndex) const
 {
 	//we only want to rotate triangles
-	if(GridShape != Triangle) return {};
+	if(GridShape != Triangle) return FRotator::ZeroRotator;
 
 	const auto XRotation = UGuildRunnerUtilities::IsFloatEven(GridIndex.X) ? 180.f : 0.f;
 	const auto YRotation = UGuildRunnerUtilities::IsFloatEven(GridIndex.Y) ? 180.f : 0.f;
