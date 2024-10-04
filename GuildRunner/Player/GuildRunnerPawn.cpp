@@ -41,6 +41,7 @@ void AGuildRunnerPawn::BeginPlay()
 		}
 	}
 
+	SpringArm->TargetArmLength = SpringArmTargetLength;
 	DesiredZoom = SpringArm->TargetArmLength;
 	DesiredLocation = GetActorLocation();
 	DesiredRotation = GetActorRotation();
