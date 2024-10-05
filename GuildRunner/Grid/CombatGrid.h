@@ -63,12 +63,23 @@ private:
 
 	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
 
+	UFUNCTION(BlueprintCallable)
+	FVector GetCursorLocationOnGrid(int32 PlayerIndex);
+	UFUNCTION(BlueprintCallable)
+	FIntPoint GetTileIndexFromWorldLocation(FVector Location);
+	UFUNCTION(BlueprintCallable)
+	FIntPoint GetTileIndexUnderCursor(int32 PlayerIndex);
+
 	//UPROPERTY()
 	//ACombatGridVisual* CombatGridVisual;
+	UFUNCTION(BlueprintCallable)
+	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
 
 	TMap<FIntPoint, FTileData> GridTiles;
 
 	void AddGridTile(const FTileData& TileData);
+
+	static FIntPoint VectorToIntPoint(const FVector& Vector);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

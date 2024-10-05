@@ -6,6 +6,8 @@
 #include "CombatGridModifier.h"
 #include "GridShapes/GridShapeUtilities.h"
 #include "GuildRunner/Utilities/GuildRunnerUtilities.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Utilities/CombatGridVisualizer.h"
 
 
@@ -143,10 +145,92 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 	return HitTileType;
 }
 
+FVector ACombatGrid::GetCursorLocationOnGrid(int32 PlayerIndex)
+{
+	const auto* PC = UGameplayStatics::GetPlayerController(this, PlayerIndex);
+	FHitResult MouseTraceResult;
+
+	if(PC->GetHitResultUnderCursor(ECC_GameTraceChannel2, false, MouseTraceResult))
+	{
+		return MouseTraceResult.Location;
+	}
+
+	FVector WorldLocation;
+	FVector WorldDirection;
+	PC->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+
+	const auto Plane = UKismetMathLibrary::MakePlaneFromPointAndNormal(GridCenterLocation, FVector(0, 0, 1));
+	float T;
+	FVector Intersection;
+	const auto bIsIntersection = UKismetMathLibrary::LinePlaneIntersection(
+	 	WorldLocation,
+	 	WorldLocation + WorldDirection * 999999.f,
+	 	Plane,
+	 	T,
+	 	Intersection);
+	if(bIsIntersection)
+	{
+		return Intersection;
+	}
+	return FVector(-999, -999, -999);
+}
+
+FIntPoint ACombatGrid::GetTileIndexFromWorldLocation(const FVector Location)
+{
+	const auto LocationOnGrid = Location - GridBottomLeftCornerLocation;
+	FVector SnappedVector;
+	FVector2D SnappedLocationOnGrid;
+	FVector2D TempIndex;
+	FIntPoint Index;
+	switch (GridShape)
+	{
+	case Square:
+		SnappedVector = UGuildRunnerUtilities::SnapVectorToVector(LocationOnGrid, GridTileSize);
+		SnappedLocationOnGrid = FVector2D(SnappedVector);
+		TempIndex = UKismetMathLibrary::Divide_Vector2DVector2D(SnappedLocationOnGrid, FVector2D(GridTileSize));
+		Index = TempIndex.IntPoint();
+		break;
+	case Hexagon:
+		SnappedVector = UGuildRunnerUtilities::SnapVectorToVector(LocationOnGrid * FVector(1.0, 2.0, 1.0), GridTileSize * FVector(0.75, 0.25, 1.0));
+		SnappedLocationOnGrid = FVector2D(SnappedVector);
+		TempIndex = UKismetMathLibrary::Divide_Vector2DVector2D(SnappedLocationOnGrid, FVector2D(GridTileSize) * FVector2D(0.75, 1.0));
+		if(UGuildRunnerUtilities::IsFloatEven(TempIndex.X))
+		{
+			Index =  {UKismetMathLibrary::FTrunc(TempIndex.X), UKismetMathLibrary::FTrunc(FMath::RoundToInt(TempIndex.Y / 2.0f) * 2.0f )};
+		}
+		else
+		{
+			Index = {UKismetMathLibrary::FTrunc(TempIndex.X), UKismetMathLibrary::FTrunc(FMath::FloorToInt(TempIndex.Y / 2.0f) * 2.0f + 1.0f)};
+		}
+		break;
+	case Triangle:
+		SnappedVector = UGuildRunnerUtilities::SnapVectorToVector(LocationOnGrid, GridTileSize / FVector(1.0, 2.0, 1.0));
+		SnappedLocationOnGrid = FVector2D(SnappedVector);
+		TempIndex = UKismetMathLibrary::Divide_Vector2DVector2D(SnappedLocationOnGrid, FVector2D(GridTileSize));
+		Index = (TempIndex * FVector2D(1.0, 2.0)).IntPoint();
+		break;
+	case NoTile:
+	default:
+		return {-999, -999};
+	}
+
+	return Index;
+}
+
+FIntPoint ACombatGrid::GetTileIndexUnderCursor(int32 PlayerIndex)
+{
+	return GetTileIndexFromWorldLocation(GetCursorLocationOnGrid(PlayerIndex));
+}
+
 void ACombatGrid::AddGridTile(const FTileData& TileData)
 {
 	GridTiles.Add(TileData.Index, TileData);
 	CombatGridVisual->UpdateTileVisual(TileData);
+}
+
+FIntPoint ACombatGrid::VectorToIntPoint(const FVector& Vector)
+{
+	return FVector2D(Vector).IntPoint();
 }
 
 FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) const
