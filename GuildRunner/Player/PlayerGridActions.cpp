@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GridActions/GridAction.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -16,6 +17,8 @@ APlayerGridActions::APlayerGridActions()
 
 	GridReference = nullptr;
 }
+
+
 
 void APlayerGridActions::BeginPlay()
 {
@@ -37,12 +40,22 @@ void APlayerGridActions::BeginPlay()
 			EnhancedInputComponent->BindAction(CombatGridDeselectTileAction, ETriggerEvent::Triggered, this, &APlayerGridActions::DeselectTile);
 		}
 	}
+
+	SetSelectedActions(PlayerAction_SelectTile, PlayerAction_SelectTile);
 }
 
 void APlayerGridActions::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	UpdateTileUnderCursor();
+}
+
+void APlayerGridActions::SetSelectedActions(TSubclassOf<AGridAction> SelectedAction,
+	TSubclassOf<AGridAction> DeselectedAction)
+{
+	LeftClickAction = TrySpawnGridAction(LeftClickAction, SelectedAction);
+	RightClickAction = TrySpawnGridAction(RightClickAction, DeselectedAction);
+	OnSelectedActionsChanged.Broadcast(LeftClickAction, RightClickAction);
 }
 
 void APlayerGridActions::UpdateTileUnderCursor()
@@ -61,14 +74,45 @@ void APlayerGridActions::UpdateTileUnderCursor()
 
 void APlayerGridActions::SelectTile(const FInputActionValue& Value)
 {
-	if(!GridReference) return;
-	GridReference->AddStateToTile(HoveredTile, Selected);
+	//if(!GridReference) return;
+	//GridReference->AddStateToTile(HoveredTile, Selected);
+
+	UpdateTileUnderCursor();
+	if(LeftClickAction) LeftClickAction->ExecuteGridAction(HoveredTile);
 }
 
 void APlayerGridActions::DeselectTile(const FInputActionValue& Value)
 {
-	if(!GridReference) return;
-	GridReference->RemoveStateFromTile(HoveredTile, Selected);
+	//if(!GridReference) return;
+	//GridReference->RemoveStateFromTile(HoveredTile, Selected);
+
+	UpdateTileUnderCursor();
+	if(RightClickAction) RightClickAction->ExecuteGridAction(HoveredTile);
+}
+
+AGridAction* APlayerGridActions::TrySpawnGridAction(AGridAction*& ActionObject, TSubclassOf<AGridAction> ActionClass)
+{
+	//if we have a valid player action, we want to destroy it
+	if(ActionObject->IsValidLowLevel())
+	{
+		//Destroy(ActionObject);
+		ActionObject->Destroy();
+		ActionObject = nullptr;
+	}
+	if(ActionClass->IsValidLowLevel())
+	{
+		FActorSpawnParameters RingParams;
+		RingParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		RingParams.bDeferConstruction = true;
+
+		if(auto* SpawnedAction = GetWorld()->SpawnActor<AGridAction>(ActionClass, FVector::ZeroVector, FRotator::ZeroRotator, RingParams))
+		{
+			SpawnedAction->PlayerGridActions = this;
+			SpawnedAction->DispatchBeginPlay();
+			return SpawnedAction;
+		}
+	}
+	return nullptr;
 }
 
 
