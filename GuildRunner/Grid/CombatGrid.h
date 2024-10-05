@@ -7,6 +7,7 @@
 #include "GridShapes/FGridShapeData.h"
 #include "CombatGrid.generated.h"
 
+enum ETileType : int;
 class UDataTable;
 
 UCLASS()
@@ -59,7 +60,8 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SetGridOffsetFromGround(const float Offset);
 
-	bool TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
+	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
+	static bool IsTileTypeWalkable(ETileType TileType);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
