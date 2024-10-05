@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GridShapes/FGridShapeData.h"
+#include "Utilities/ETileType.h"
 #include "CombatGridModifier.generated.h"
 
-enum ETileType : int;
 
 UCLASS()
 class GUILDRUNNER_API ACombatGridModifier : public AActor

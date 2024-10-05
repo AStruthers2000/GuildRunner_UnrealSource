@@ -1,0 +1,21 @@
+﻿#pragma once
+#include "CoreMinimal.h"
+#include "ETileType.h"
+#include "FTileData.generated.h"
+
+
+USTRUCT(BlueprintType)
+struct FTileData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FIntPoint Index = {0, 0};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<ETileType> Type = NoTile;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform Transform;
+};
+

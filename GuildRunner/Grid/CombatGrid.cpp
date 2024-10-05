@@ -4,12 +4,10 @@
 #include "CombatGrid.h"
 
 #include "CombatGridModifier.h"
-#include "Components/InstancedStaticMeshComponent.h"
-#include "Engine/DataTable.h"
-#include "GridShapes/FGridShapeData.h"
 #include "GridShapes/GridShapeUtilities.h"
 #include "GuildRunner/Utilities/GuildRunnerUtilities.h"
-#include "Utilities/ETileType.h"
+#include "Utilities/CombatGridVisualizer.h"
+
 
 // Sets default values
 ACombatGrid::ACombatGrid()
@@ -18,26 +16,15 @@ ACombatGrid::ACombatGrid()
 	PrimaryActorTick.bCanEverTick = true;
 
 	auto* DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Default Root"));
-	InstancedGridMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Instanced Static Mesh"));
-
 	RootComponent = DefaultRoot;
-	InstancedGridMesh->SetupAttachment(RootComponent);
 
-	/*
-	static ConstructorHelpers::FObjectFinder<UDataTable> GridShapeObject(TEXT("/Script/Engine.DataTable'/Game/GuildRunner/Grid/GridShapes/DT_GridShapeData.DT_GridShapeData'"));
-	
-	if (GridShapeObject.Succeeded())
-	{
-		GridDataMappingTable = GridShapeObject.Object;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ACombatGrid::ACombatGrid]: Could not find Grid Shape Data table."));
-	}
-	*/
-	bRefreshGrid = false;
-	//SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
+    CombatGridVisual = CreateDefaultSubobject<UCombatGridVisualizer>(TEXT("Combat Grid Visual"));
+    CombatGridVisual->SetupAttachment(RootComponent);
+
+    bRefreshGrid = false;
+	SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
 }
+
 
 #if WITH_EDITOR
 void ACombatGrid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -64,15 +51,14 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 	FindGridCenterAndBottomLeft(GridCenterLocation, GridBottomLeftCornerLocation);
 
 	//destroy previous grid
-	InstancedGridMesh->ClearInstances();
+	GridTiles.Empty();
+	CombatGridVisual->DestroyGridVisual();
 
 	//create new grid from current selected instance
 	const auto* RowData = GetCurrentShapeData();
 	if(RowData && GridShape != NoDefinedShape)
 	{
-		InstancedGridMesh->SetStaticMesh(RowData->FlatMesh);
-		InstancedGridMesh->SetMaterial(0, RowData->FlatBorderMaterial);
-		SetGridOffsetFromGround(GridOffsetFromGround);
+		CombatGridVisual->InitializeGridVisual(this);
 
 		TArray<FTransform> InstancesToAdd;
 		FTransform TileTransform;
@@ -89,7 +75,7 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 			
 			for(int32 y = GridOffsetY; y < GridTileY; y++)
 			{
-				const auto Index = FVector2D(x, y);
+				const auto Index = FIntPoint(x, y);
 				
 				TileTransform.SetLocation(GetTileLocationFromGridIndex(Index));
 				TileTransform.SetRotation(GetTileRotationFromGridIndex(Index).Quaternion());
@@ -98,28 +84,18 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 				{
 					FVector GroundLocation;
 					const auto HitTileType = TraceForGround(TileTransform.GetLocation(), GroundLocation);
-					if(IsTileTypeWalkable(HitTileType))
-					{
-						TileTransform.SetLocation(GroundLocation);
-						InstancesToAdd.Add(TileTransform);
-					}
+					TileTransform.SetLocation(GroundLocation);
+					AddGridTile({Index, HitTileType, TileTransform});
 				}
 				else
 				{
-					InstancesToAdd.Add(TileTransform);
+					AddGridTile({Index, Normal, TileTransform});
 				}
 
 				if(GridShape == Hexagon) ++y;
 			}
 		}
-		InstancedGridMesh->AddInstances(InstancesToAdd, false, false);
 	}
-}
-
-void ACombatGrid::SetGridOffsetFromGround(const float Offset)
-{
-	GridOffsetFromGround = Offset;
-	InstancedGridMesh->SetWorldLocation(FVector(0.f, 0.f, Offset));
 }
 
 ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitLocation) const
@@ -134,7 +110,7 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 	Params.TraceTag = "Environment Trace";
 	
 	FCollisionResponseParams Responses;
-	bool bHit = GetWorld() ? GetWorld()->SweepMultiByChannel(
+	const bool bHit = GetWorld() ? GetWorld()->SweepMultiByChannel(
 		Hits,
 		TraceStart,
 		TraceEnd,
@@ -167,10 +143,10 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 	return HitTileType;
 }
 
-bool ACombatGrid::IsTileTypeWalkable(const ETileType TileType)
+void ACombatGrid::AddGridTile(const FTileData& TileData)
 {
-	const TArray NonWalkableTiles = {NoTile, Obstacle};
-	return !NonWalkableTiles.Contains(TileType);
+	GridTiles.Add(TileData.Index, TileData);
+	CombatGridVisual->UpdateTileVisual(TileData);
 }
 
 FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) const
@@ -209,23 +185,6 @@ FRotator ACombatGrid::GetTileRotationFromGridIndex(const FVector2D GridIndex) co
 
 const FGridShapeData* ACombatGrid::GetCurrentShapeData() const
 {
-	/*
-	if(!GridDataMappingTable)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ACombatGrid::SpawnGrid]:\tError: no grid data table assigned to this class, cannot spawn grid."));
-		return nullptr;
-	}
-
-	if(GridShape == NoDefinedShape)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[ACombatGrid::SpawnGrid]:\tWarning: No defined shape selected, cannot spawn grid."));
-		return nullptr;
-	}
-	
-	const FName RowName = FName(UEnum::GetDisplayValueAsText(GridShape).ToString());
-	const FGridShapeData* OutRow = GridDataMappingTable->FindRow<FGridShapeData>(RowName, "Tile Information", true); 
-	return OutRow;
-	*/
 	return UGridShapeUtilities::GetShapeData(GridShape);
 }
 

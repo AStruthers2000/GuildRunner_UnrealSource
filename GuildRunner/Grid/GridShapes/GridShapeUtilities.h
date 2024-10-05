@@ -6,6 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Engine/DataTable.h"
 #include "FGridShapeData.h"
+#include "GuildRunner/Grid/Utilities/ETileType.h"
 #include "GridShapeUtilities.generated.h"
 
 class UDataTable;
@@ -20,6 +21,10 @@ class GUILDRUNNER_API UGridShapeUtilities : public UBlueprintFunctionLibrary
 public:
 	//UFUNCTION(BlueprintCallable)
 	static const FGridShapeData* GetShapeData(EGridShape Shape);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	static bool IsTileTypeWalkable(const ETileType TileType);
+	
 
 private:
 	static const UDataTable* FindGridDataMappingTable();

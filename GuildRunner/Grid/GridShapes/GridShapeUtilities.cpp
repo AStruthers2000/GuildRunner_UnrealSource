@@ -1,6 +1,7 @@
 ﻿#include "GridShapeUtilities.h"
 
 #include "FGridShapeData.h"
+#include "GuildRunner/Grid/Utilities/ETileType.h"
 
 const FGridShapeData* UGridShapeUtilities::GetShapeData(EGridShape Shape)
 {
@@ -21,6 +22,12 @@ const FGridShapeData* UGridShapeUtilities::GetShapeData(EGridShape Shape)
 	const FName RowName = FName(UEnum::GetDisplayValueAsText(Shape).ToString());
 	const FGridShapeData* OutRow = DataTable->FindRow<FGridShapeData>(RowName, "Tile Information", true);
 	return OutRow;
+}
+
+bool UGridShapeUtilities::IsTileTypeWalkable(const ETileType TileType)
+{
+	const TArray NonWalkableTiles = {NoTile, Obstacle};
+	return !NonWalkableTiles.Contains(TileType);
 }
 
 const UDataTable* UGridShapeUtilities::FindGridDataMappingTable()

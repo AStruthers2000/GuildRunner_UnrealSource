@@ -20,7 +20,7 @@ ACombatGridModifier::ACombatGridModifier()
 	ConfigureMesh();
 }
 
-#if WITH_EDITOR
+
 void ACombatGridModifier::ConfigureMesh()
 {
 	const auto* ShapeData = UGridShapeUtilities::GetShapeData(Shape);
@@ -45,6 +45,7 @@ void ACombatGridModifier::ConfigureMesh()
 	SetActorHiddenInGame(true);
 }
 
+#if WITH_EDITOR
 void ACombatGridModifier::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

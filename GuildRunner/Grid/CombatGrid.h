@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GridShapes/FGridShapeData.h"
+#include "Utilities/ETileType.h"
+#include "GuildRunner/Grid/Utilities/FTileData.h"
 #include "CombatGrid.generated.h"
 
-enum ETileType : int;
+class UCombatGridVisualizer;
 class UDataTable;
 
 UCLASS()
@@ -15,11 +17,18 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	UInstancedStaticMeshComponent* InstancedGridMesh;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
+	//UInstancedStaticMeshComponent* InstancedGridMesh;
 
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
+	//UChildActorComponent* ChildActorGridVisual;
+	//UCombatGridVisual* CombatGridVisual;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	UDataTable* GridDataMappingTable;
+	//UChildActorComponent* ChildActorGridVisual;
+	UCombatGridVisualizer* CombatGridVisual;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
+	//UDataTable* GridDataMappingTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	FVector GridCenterLocation;
@@ -34,34 +43,32 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 	TEnumAsByte<EGridShape> GridShape = Square;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	float GridOffsetFromGround = 5.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	bool bRefreshGrid;
 	
 public:	
 	// Sets default values for this actor's properties
 	ACombatGrid();
+	const FGridShapeData* GetCurrentShapeData() const;
 
 private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
 	FVector GetTileLocationFromGridIndex(FVector2D GridIndex) const;
 	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
-
-	
-	//UFUNCTION(BlueprintCallable)
-	const FGridShapeData* GetCurrentShapeData() const;
 	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
 	FVector GridBottomLeftCornerLocation;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetGridBottomLeftCornerLocation() const { return GridBottomLeftCornerLocation; }
-	UFUNCTION(BlueprintCallable)
-	void SetGridOffsetFromGround(const float Offset);
 
 	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
-	static bool IsTileTypeWalkable(ETileType TileType);
+
+	//UPROPERTY()
+	//ACombatGridVisual* CombatGridVisual;
+
+	TMap<FIntPoint, FTileData> GridTiles;
+
+	void AddGridTile(const FTileData& TileData);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
