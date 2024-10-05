@@ -26,6 +26,7 @@ void ACombatGridModifier::ConfigureMesh()
 	const auto* ShapeData = UGridShapeUtilities::GetShapeData(Shape);
 	if(!ShapeData) return;
 	StaticMeshComponent->SetStaticMesh(UGridShapeUtilities::GetShapeData(Shape)->Mesh);
+	StaticMeshComponent->SetMaterial(0, UGridShapeUtilities::GetShapeData(Shape)->FlatMaterial);
 
 	FLinearColor MeshColor = FLinearColor(0, 0, 0, 1);
 	switch (TileType)
@@ -40,6 +41,7 @@ void ACombatGridModifier::ConfigureMesh()
 	default: return;
 	}
 	StaticMeshComponent->SetVectorParameterValueOnMaterials("Color", FVector(MeshColor.R, MeshColor.G, MeshColor.B));
+	StaticMeshComponent->SetScalarParameterValueOnMaterials("IsFilled", 1.0);
 
 	StaticMeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 	SetActorHiddenInGame(true);

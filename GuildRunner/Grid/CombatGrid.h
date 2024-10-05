@@ -16,19 +16,9 @@ UCLASS()
 class GUILDRUNNER_API ACombatGrid : public AActor
 {
 	GENERATED_BODY()
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	//UInstancedStaticMeshComponent* InstancedGridMesh;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	//UChildActorComponent* ChildActorGridVisual;
-	//UCombatGridVisual* CombatGridVisual;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	//UChildActorComponent* ChildActorGridVisual;
 	UCombatGridVisualizer* CombatGridVisual;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	//UDataTable* GridDataMappingTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	FVector GridCenterLocation;
@@ -46,43 +36,52 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 	bool bRefreshGrid;
 	
 public:	
-	// Sets default values for this actor's properties
 	ACombatGrid();
-	const FGridShapeData* GetCurrentShapeData() const;
+	
 
 private:
+	/******************************************************************
+	 * Grid Generation 
+	 ******************************************************************/
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
-	FVector GetTileLocationFromGridIndex(FVector2D GridIndex) const;
-	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
+	void AddGridTile(const FTileData& TileData);
 	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
-	FVector GridBottomLeftCornerLocation;
-
+	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetGridBottomLeftCornerLocation() const { return GridBottomLeftCornerLocation; }
+	FVector GridBottomLeftCornerLocation;
 
-	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
-
-	UFUNCTION(BlueprintCallable)
-	FVector GetCursorLocationOnGrid(int32 PlayerIndex);
-	UFUNCTION(BlueprintCallable)
-	FIntPoint GetTileIndexFromWorldLocation(FVector Location);
-	UFUNCTION(BlueprintCallable)
-	FIntPoint GetTileIndexUnderCursor(int32 PlayerIndex);
-
-	//UPROPERTY()
-	//ACombatGridVisual* CombatGridVisual;
+	/******************************************************************
+	 * Grid Utilities
+	 ******************************************************************/
+	FVector GetTileLocationFromGridIndex(FVector2D GridIndex) const;
+	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
+public:
+	const FGridShapeData* GetCurrentShapeData() const;
+	void AddStateToTile(const FIntPoint& Index, ETileState State);
+	void RemoveStateFromTile(const FIntPoint& Index, ETileState State);
+private:
 	UFUNCTION(BlueprintCallable)
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
-
 	TMap<FIntPoint, FTileData> GridTiles;
-
-	void AddGridTile(const FTileData& TileData);
-
-	static FIntPoint VectorToIntPoint(const FVector& Vector);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	
+	/******************************************************************
+	 * Mouse Cursor
+	 ******************************************************************/
+	UFUNCTION(BlueprintCallable)
+	FVector GetCursorLocationOnGrid(int32 PlayerIndex);
+	UFUNCTION(BlueprintCallable)
+	FIntPoint GetTileIndexFromWorldLocation(FVector Location);
+public:
+	UFUNCTION(BlueprintCallable)
+	FIntPoint GetTileIndexUnderCursor(int32 PlayerIndex);
+	
+
 	
 };

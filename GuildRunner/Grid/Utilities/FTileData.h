@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "ETileState.h"
 #include "ETileType.h"
 #include "FTileData.generated.h"
 
@@ -17,5 +18,8 @@ struct FTileData
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform Transform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TEnumAsByte<ETileState>> States;
 };
 

@@ -31,9 +31,9 @@ struct FGridShapeData : public FTableRowBase
 	UStaticMesh* FlatMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInstance* FlatBorderMaterial;
+	UMaterialInstance* FlatMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInstance* FlatFilledMaterial;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//UMaterialInstance* FlatFilledMaterial;
 };
 

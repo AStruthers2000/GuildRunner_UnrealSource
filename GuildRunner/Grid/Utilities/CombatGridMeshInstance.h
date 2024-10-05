@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ETileState.h"
 #include "Components/SceneComponent.h"
 #include "CombatGridMeshInstance.generated.h"
 
@@ -19,7 +20,7 @@ public:
 	UCombatGridMeshInstance();
 
 	UFUNCTION(BlueprintCallable)
-	void AddInstance(const FIntPoint& Index, const FTransform& Transform);
+	void AddInstance(const FIntPoint& Index, const FTransform& Transform, const TArray<TEnumAsByte<ETileState>>& TileStates);
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveInstance(const FIntPoint& Index);
@@ -32,6 +33,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AdjustInstanceMeshOffsetFromGround(const float Offset);
+
+	static FLinearColor GetColorFromStates(const TArray<TEnumAsByte<ETileState>>& States, float& IsFilledValue);
 
 private:
 	TArray<FIntPoint> InstanceIndices;

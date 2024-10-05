@@ -20,7 +20,7 @@ void UCombatGridVisualizer::InitializeGridVisual(ACombatGrid* Grid)
 
 	GridMeshInstance->InitializeGridMeshInstance(
 		ShapeData->FlatMesh,
-		ShapeData->FlatBorderMaterial,
+		ShapeData->FlatMaterial,
 		FLinearColor(0, 0, 0, 1),
 		ECollisionEnabled::QueryOnly
 		);
@@ -43,12 +43,12 @@ void UCombatGridVisualizer::DestroyGridVisual()
 	GridMeshInstance->ClearInstances();
 }
 
-void UCombatGridVisualizer::UpdateTileVisual(FTileData Data)
+void UCombatGridVisualizer::UpdateTileVisual(const FTileData Data)
 {
 	GridMeshInstance->RemoveInstance(Data.Index);
 	if(UGridShapeUtilities::IsTileTypeWalkable(Data.Type))
 	{
-		GridMeshInstance->AddInstance(Data.Index, Data.Transform);
+		GridMeshInstance->AddInstance(Data.Index, Data.Transform, Data.States);
 	}
 }
 

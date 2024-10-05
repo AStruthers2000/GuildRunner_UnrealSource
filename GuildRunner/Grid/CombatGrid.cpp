@@ -28,21 +28,12 @@ ACombatGrid::ACombatGrid()
 }
 
 
-#if WITH_EDITOR
-void ACombatGrid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if(bRefreshGrid)
-	{
-		SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
-		bRefreshGrid = false;
-	}
-}
-#endif
-
+/******************************************************************
+ * Grid Generation 
+ ******************************************************************/
 
 void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions,
-                            TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning)
+							TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning)
 {
 	//initialize global variables
 	GridCenterLocation = CentralSpawnLocation;
@@ -100,6 +91,50 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 	}
 }
 
+void ACombatGrid::AddGridTile(const FTileData& TileData)
+{
+	GridTiles.Add(TileData.Index, TileData);
+	CombatGridVisual->UpdateTileVisual(TileData);
+}
+
+void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const
+{
+	switch (GridShape)
+	{
+	case Square:
+		{
+			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, GridTileSize);
+			const auto X = UGuildRunnerUtilities::IsFloatEven(GridTileCount.X) ? 0.f : 1.f;
+			const auto Y = UGuildRunnerUtilities::IsFloatEven(GridTileCount.Y) ? 0.f : 1.f;
+			const auto TileOffset = GridTileCount - FVector2D(X, Y);
+			const auto LocationOffset = (TileOffset / 2.f) * FVector2D(GridTileSize.X, GridTileSize.Y);
+			Out_BottomLeft = Out_Center - FVector(LocationOffset.X, LocationOffset.Y, 0.f);
+			break;
+		}
+	case Triangle:
+		{
+			const auto TriangleGridSize = GridTileSize * FVector(2.f, 1.f, 1.f);
+			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, TriangleGridSize);
+			const auto TileOffset = GridTileCount - FVector2D(1.f, 1.f);
+			const auto LocationOffset = (TileOffset / FVector2D(2.f, 4.f)) * FVector2D(GridTileSize.X, GridTileSize.Y);
+			const auto TriangleSnap = UGuildRunnerUtilities::SnapVectorToVector(FVector(LocationOffset.X, LocationOffset.Y, 0.f), TriangleGridSize);
+			Out_BottomLeft = Out_Center - TriangleSnap;
+			break;
+		}
+	case Hexagon:
+		{
+			const auto HexagonGridSize = GridTileSize * FVector(1.5f, 1.f, 1.f);
+			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, HexagonGridSize);
+			const auto LocationOffset = (GridTileCount / FVector2D(3.f, 2.f)) * FVector2D(GridTileSize.X, GridTileSize.Y);
+			const auto TriangleSnap = UGuildRunnerUtilities::SnapVectorToVector(FVector(LocationOffset.X, LocationOffset.Y, 0.f), HexagonGridSize);
+			Out_BottomLeft = Out_Center - TriangleSnap;
+			break;
+		}
+	case NoDefinedShape: //intentional fallthrough
+		default: break;
+	}
+}
+
 ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitLocation) const
 {
 	TArray<FHitResult> Hits;
@@ -144,6 +179,93 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 	}
 	return HitTileType;
 }
+
+
+/******************************************************************
+ * Grid Utilities
+ ******************************************************************/
+
+FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) const
+{
+	FVector2D ScaledIndex = GridIndex;
+	//each shape has a different location scale
+	switch (GridShape)
+	{
+	case Square:
+		ScaledIndex *= {1.f, 1.f};
+		break;
+	case Triangle:
+		ScaledIndex *= {1.f, 0.5f};
+		break;
+	case Hexagon:
+		ScaledIndex *= {0.75f, 0.5f};
+		break;
+	case NoDefinedShape: //intentional fallthrough
+		default: return {};
+	}
+	
+	const auto TileLocation = GridBottomLeftCornerLocation + GridTileSize * FVector(ScaledIndex.X, ScaledIndex.Y, 0);
+	return TileLocation;
+}
+
+FRotator ACombatGrid::GetTileRotationFromGridIndex(const FVector2D GridIndex) const
+{
+	//we only want to rotate triangles
+	if(GridShape != Triangle) return FRotator::ZeroRotator;
+
+	const auto XRotation = UGuildRunnerUtilities::IsFloatEven(GridIndex.X) ? 180.f : 0.f;
+	const auto YRotation = UGuildRunnerUtilities::IsFloatEven(GridIndex.Y) ? 180.f : 0.f;
+	
+	return FRotator(0.f, XRotation + YRotation, 0.f);
+}
+
+void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
+{
+	auto* Data = GridTiles.Find(Index);
+	if(Data)
+	{
+		if(Data->States.AddUnique(State) >= 0)
+		{
+			GridTiles.Add(Data->Index, *Data);
+			CombatGridVisual->UpdateTileVisual(*Data);
+		}
+	}
+}
+
+void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState State)
+{
+	auto* Data = GridTiles.Find(Index);
+	if(Data)
+	{
+		if(Data->States.Remove(State))
+		{
+			GridTiles.Add(Data->Index, *Data);
+			CombatGridVisual->UpdateTileVisual(*Data);
+		}
+	}
+}
+
+const FGridShapeData* ACombatGrid::GetCurrentShapeData() const
+{
+	return UGridShapeUtilities::GetShapeData(GridShape);
+}
+
+#if WITH_EDITOR
+void ACombatGrid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if(bRefreshGrid)
+	{
+		SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
+		bRefreshGrid = false;
+	}
+}
+#endif
+
+
+/******************************************************************
+ * Mouse Cursor
+ ******************************************************************/
 
 FVector ACombatGrid::GetCursorLocationOnGrid(int32 PlayerIndex)
 {
@@ -221,93 +343,3 @@ FIntPoint ACombatGrid::GetTileIndexUnderCursor(int32 PlayerIndex)
 {
 	return GetTileIndexFromWorldLocation(GetCursorLocationOnGrid(PlayerIndex));
 }
-
-void ACombatGrid::AddGridTile(const FTileData& TileData)
-{
-	GridTiles.Add(TileData.Index, TileData);
-	CombatGridVisual->UpdateTileVisual(TileData);
-}
-
-FIntPoint ACombatGrid::VectorToIntPoint(const FVector& Vector)
-{
-	return FVector2D(Vector).IntPoint();
-}
-
-FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) const
-{
-	FVector2D ScaledIndex = GridIndex;
-	//each shape has a different location scale
-	switch (GridShape)
-	{
-	case Square:
-		ScaledIndex *= {1.f, 1.f};
-		break;
-	case Triangle:
-		ScaledIndex *= {1.f, 0.5f};
-		break;
-	case Hexagon:
-		ScaledIndex *= {0.75f, 0.5f};
-		break;
-	case NoDefinedShape: //intentional fallthrough
-	default: return {};
-	}
-	
-	const auto TileLocation = GridBottomLeftCornerLocation + GridTileSize * FVector(ScaledIndex.X, ScaledIndex.Y, 0);
-	return TileLocation;
-}
-
-FRotator ACombatGrid::GetTileRotationFromGridIndex(const FVector2D GridIndex) const
-{
-	//we only want to rotate triangles
-	if(GridShape != Triangle) return FRotator::ZeroRotator;
-
-	const auto XRotation = UGuildRunnerUtilities::IsFloatEven(GridIndex.X) ? 180.f : 0.f;
-	const auto YRotation = UGuildRunnerUtilities::IsFloatEven(GridIndex.Y) ? 180.f : 0.f;
-	
-	return FRotator(0.f, XRotation + YRotation, 0.f);
-}
-
-const FGridShapeData* ACombatGrid::GetCurrentShapeData() const
-{
-	return UGridShapeUtilities::GetShapeData(GridShape);
-}
-
-void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const
-{
-	switch (GridShape)
-	{
-	case Square:
-		{
-			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, GridTileSize);
-			const auto X = UGuildRunnerUtilities::IsFloatEven(GridTileCount.X) ? 0.f : 1.f;
-			const auto Y = UGuildRunnerUtilities::IsFloatEven(GridTileCount.Y) ? 0.f : 1.f;
-			const auto TileOffset = GridTileCount - FVector2D(X, Y);
-			const auto LocationOffset = (TileOffset / 2.f) * FVector2D(GridTileSize.X, GridTileSize.Y);
-			Out_BottomLeft = Out_Center - FVector(LocationOffset.X, LocationOffset.Y, 0.f);
-			break;
-		}
-	case Triangle:
-		{
-			const auto TriangleGridSize = GridTileSize * FVector(2.f, 1.f, 1.f);
-			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, TriangleGridSize);
-			const auto TileOffset = GridTileCount - FVector2D(1.f, 1.f);
-			const auto LocationOffset = (TileOffset / FVector2D(2.f, 4.f)) * FVector2D(GridTileSize.X, GridTileSize.Y);
-			const auto TriangleSnap = UGuildRunnerUtilities::SnapVectorToVector(FVector(LocationOffset.X, LocationOffset.Y, 0.f), TriangleGridSize);
-			Out_BottomLeft = Out_Center - TriangleSnap;
-			break;
-		}
-	case Hexagon:
-		{
-			const auto HexagonGridSize = GridTileSize * FVector(1.5f, 1.f, 1.f);
-			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, HexagonGridSize);
-			const auto LocationOffset = (GridTileCount / FVector2D(3.f, 2.f)) * FVector2D(GridTileSize.X, GridTileSize.Y);
-			const auto TriangleSnap = UGuildRunnerUtilities::SnapVectorToVector(FVector(LocationOffset.X, LocationOffset.Y, 0.f), HexagonGridSize);
-			Out_BottomLeft = Out_Center - TriangleSnap;
-			break;
-		}
-	case NoDefinedShape: //intentional fallthrough
-		default: break;
-	}
-}
-
-
