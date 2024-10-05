@@ -56,8 +56,7 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 		TArray<FTransform> InstancesToAdd;
 		FTransform TileTransform;
 
-		const auto TileScale = GridTileSize / RowData->MeshSize;
-		TileTransform.SetScale3D(TileScale);
+		TileTransform.SetScale3D(GetTileScale());
 
 		for (int32 x = 0; x < GridTileCount.X; x++)
 		{
@@ -95,6 +94,14 @@ void ACombatGrid::AddGridTile(const FTileData& TileData)
 {
 	GridTiles.Add(TileData.Index, TileData);
 	CombatGridVisual->UpdateTileVisual(TileData);
+}
+
+void ACombatGrid::RemoveGridTile(const FIntPoint& Index)
+{
+	if(GridTiles.Remove(Index))
+	{
+		CombatGridVisual->UpdateTileVisual({Index});
+	}
 }
 
 void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const
@@ -219,6 +226,11 @@ FRotator ACombatGrid::GetTileRotationFromGridIndex(const FVector2D GridIndex) co
 	return FRotator(0.f, XRotation + YRotation, 0.f);
 }
 
+FVector ACombatGrid::GetTileScale() const
+{
+	return GridTileSize / GetCurrentShapeData()->MeshSize;
+}
+
 void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
 {
 	auto* Data = GridTiles.Find(Index);
@@ -243,6 +255,11 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 			CombatGridVisual->UpdateTileVisual(*Data);
 		}
 	}
+}
+
+bool ACombatGrid::IsIndexValid(const FIntPoint& Index)
+{
+	return GridTiles.Contains(Index);
 }
 
 const FGridShapeData* ACombatGrid::GetCurrentShapeData() const
@@ -273,6 +290,11 @@ FVector ACombatGrid::GetCursorLocationOnGrid(int32 PlayerIndex)
 	FHitResult MouseTraceResult;
 
 	if(PC->GetHitResultUnderCursor(ECC_GameTraceChannel2, false, MouseTraceResult))
+	{
+		return MouseTraceResult.Location;
+	}
+
+	if(PC->GetHitResultUnderCursor(ECC_GameTraceChannel1, false, MouseTraceResult))
 	{
 		return MouseTraceResult.Location;
 	}

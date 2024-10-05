@@ -45,10 +45,14 @@ private:
 	 ******************************************************************/
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
+public:
 	void AddGridTile(const FTileData& TileData);
+	void RemoveGridTile(const FIntPoint& Index);
+private:
 	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
+public:
 	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
-	
+private:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetGridBottomLeftCornerLocation() const { return GridBottomLeftCornerLocation; }
 	FVector GridBottomLeftCornerLocation;
@@ -56,15 +60,19 @@ private:
 	/******************************************************************
 	 * Grid Utilities
 	 ******************************************************************/
+public:
 	FVector GetTileLocationFromGridIndex(FVector2D GridIndex) const;
 	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
-public:
+	FVector GetTileScale() const;
+	FVector GetGridTileSize() const { return GridTileSize; }
 	const FGridShapeData* GetCurrentShapeData() const;
 	void AddStateToTile(const FIntPoint& Index, ETileState State);
 	void RemoveStateFromTile(const FIntPoint& Index, ETileState State);
-private:
+	bool IsIndexValid(const FIntPoint& Index);
+	
 	UFUNCTION(BlueprintCallable)
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
+private:
 	TMap<FIntPoint, FTileData> GridTiles;
 
 #if WITH_EDITOR
@@ -81,6 +89,7 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	FIntPoint GetTileIndexUnderCursor(int32 PlayerIndex);
+private:
 	
 
 	
