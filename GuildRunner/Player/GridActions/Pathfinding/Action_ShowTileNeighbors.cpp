@@ -5,6 +5,7 @@
 
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "GuildRunner/Grid/CombatGridPathfinding.h"
+#include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "GuildRunner/Player/PlayerGridActions.h"
 
 AAction_ShowTileNeighbors::AAction_ShowTileNeighbors()
@@ -18,8 +19,8 @@ void AAction_ShowTileNeighbors::ExecuteGridAction(FIntPoint TileIndex)
 
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsNeighbor);
 	auto Neighbors = PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->GetValidTileNeighbors(TileIndex, bIncludeDiagonals);
-	for(auto& Neighbor : Neighbors)
+	for(auto& [Index, CostToEnterTile, CostFromStart, MinimumCostToTarget, PreviousTile] : Neighbors)
 	{
-		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Neighbor, IsNeighbor);
+		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Index, IsNeighbor);
 	}
 }

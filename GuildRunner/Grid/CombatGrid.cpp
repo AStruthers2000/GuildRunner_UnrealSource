@@ -402,9 +402,17 @@ FIntPoint ACombatGrid::GetTileIndexFromWorldLocation(const FVector Location)
 	return Index;
 }
 
-FIntPoint ACombatGrid::GetTileIndexUnderCursor(int32 PlayerIndex)
+FIntPoint ACombatGrid::GetTileIndexUnderCursor(const int32 PlayerIndex)
 {
 	return GetTileIndexFromWorldLocation(GetCursorLocationOnGrid(PlayerIndex));
+}
+
+bool ACombatGrid::IsTileWalkable(const FIntPoint& Index)
+{
+	const auto Tile = GridTiles.Find(Index);
+	if(!Tile) return false;
+	
+	return UGridShapeUtilities::IsTileTypeWalkable(Tile->Type);
 }
 
 

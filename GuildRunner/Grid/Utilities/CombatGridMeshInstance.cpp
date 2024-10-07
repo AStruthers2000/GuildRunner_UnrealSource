@@ -68,7 +68,7 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStates(const TArray<TEnumAsByt
 	if(States.IsEmpty()) return FLinearColor(0, 0, 0, 1);
 
 	//this list is the priority of our colors
-	for (const auto& State : {Selected, Hovered, IsNeighbor})
+	for (const auto& State : {Selected, Hovered, IsNeighbor, IsInPath})
 	{
 		if(States.Contains(State))
 		{
@@ -83,6 +83,9 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStates(const TArray<TEnumAsByt
 			case IsNeighbor:
 				IsFilledValue = 1.f;
 				return FLinearColor(243.f/255.f, 58.f/255.f, 106.f/255.f, 1);
+			case IsInPath:
+				IsFilledValue = 1.f;
+				return FLinearColor(125.f/255.f, 249.f/255.f, 1, 1);
 			case None:
 			default: return FLinearColor(0, 0, 0, 1);
 			}

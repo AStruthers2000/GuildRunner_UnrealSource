@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Utilities/FPathfindingData.h"
 #include "CombatGridPathfinding.generated.h"
 
 struct FTileData;
@@ -21,18 +22,52 @@ public:
 
 	void SetGridPathfindingReference(ACombatGrid* Reference) { GridReference = Reference; }
 
-	UFUNCTION(BlueprintCallable)
-	TArray<FIntPoint> GetValidTileNeighbors(FIntPoint Index, bool bIncludeDiagonals) const;
-
 private:
 	UPROPERTY()
 	ACombatGrid* GridReference = nullptr;
 
-	TArray<FIntPoint> GetNeighborIndicesForSquare(const FIntPoint& Index, bool bIncludeDiagonals) const;
-	TArray<FIntPoint> GetNeighborIndicesForHexagon(const FIntPoint& Index) const;
-	TArray<FIntPoint> GetNeighborIndicesForTriangle(const FIntPoint& Index, bool bIncludeDiagonals) const;
-	TArray<FIntPoint> CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
+	/******************************************************************
+	 * A* Pathfinding
+	 ******************************************************************/
+public:
+	UFUNCTION(BlueprintCallable)
+	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals);
 
+	UFUNCTION(BlueprintCallable)
+	void ClearGeneratedPathfindingData();
+
+private:
+	bool IsInputDataValid() const;
+	void DiscoverTile(FPathfindingData TilePathData);
+	static int GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, bool bUsingDiagonals);
+	bool AnalyzeNextDiscoveredTile();
+	TArray<FIntPoint> GeneratePath();
+	FPathfindingData PullCheapestTileOutOfDiscoveredList();
+	bool DiscoverNextNeighbor();
+	void InsertTileIntoDiscoveredArray(FPathfindingData TileData);
+
+	FIntPoint StartIndex;
+	FIntPoint TargetIndex;
+	bool bIncludeDiagonalsInPathfinding;
+	TArray<FIntPoint> DiscoveredTileIndices;
+	TArray<int32> DiscoveredTileSortingCosts;
+	TArray<FIntPoint> AnalyzedTileIndices;
+	FPathfindingData CurrentDiscoveredTile;
+	TMap<FIntPoint, FPathfindingData> PathfindingData;
+	TArray<FPathfindingData> CurrentNeighbors;
+	FPathfindingData CurrentNeighbor;
+
+	/******************************************************************
+	 * Neighbor Checking
+	 ******************************************************************/
+public:
+	UFUNCTION(BlueprintCallable)
+	TArray<FPathfindingData> GetValidTileNeighbors(FIntPoint Index, bool bIncludeDiagonals) const;
+
+private:
+	TArray<FPathfindingData> GetNeighborIndicesForSquare(const FIntPoint& Index, bool bIncludeDiagonals) const;
+	TArray<FPathfindingData> GetNeighborIndicesForHexagon(const FIntPoint& Index) const;
+	TArray<FPathfindingData> GetNeighborIndicesForTriangle(const FIntPoint& Index, bool bIncludeDiagonals) const;
+	TArray<FPathfindingData> CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
 	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor) const;
-	
 };

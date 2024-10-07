@@ -8,5 +8,6 @@ enum ETileState
 	None,
 	Hovered,
 	Selected,
-	IsNeighbor
+	IsNeighbor,
+	IsInPath
 };

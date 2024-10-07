@@ -115,6 +115,7 @@ public:
 	 ******************************************************************/
 public:
 	UCombatGridPathfinding* GetGridPathfinding() const { return CombatGridPathfinding; }
+	bool IsTileWalkable(const FIntPoint& Index);
 	
 
 	
