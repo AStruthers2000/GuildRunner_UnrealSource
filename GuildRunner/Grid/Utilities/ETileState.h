@@ -7,5 +7,6 @@ enum ETileState
 {
 	None,
 	Hovered,
-	Selected
+	Selected,
+	IsNeighbor
 };

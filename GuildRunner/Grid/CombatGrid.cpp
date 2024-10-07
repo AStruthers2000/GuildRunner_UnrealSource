@@ -4,6 +4,7 @@
 #include "CombatGrid.h"
 
 #include "CombatGridModifier.h"
+#include "CombatGridPathfinding.h"
 #include "GridShapes/GridShapeUtilities.h"
 #include "GuildRunner/Utilities/GuildRunnerUtilities.h"
 #include "Kismet/GameplayStatics.h"
@@ -22,6 +23,10 @@ ACombatGrid::ACombatGrid()
 
     CombatGridVisual = CreateDefaultSubobject<UCombatGridVisualizer>(TEXT("Combat Grid Visual"));
     CombatGridVisual->SetupAttachment(RootComponent);
+
+	CombatGridPathfinding = CreateDefaultSubobject<UCombatGridPathfinding>(TEXT("Combat Grid Pathfinding Component"));
+	//CombatGridPathfinding->RegisterComponent();
+	//CombatGridPathfinding.;
 
     bRefreshGrid = false;
 	SpawnGrid(GetActorLocation(), GridTileSize, GridTileCount, GridShape);
@@ -43,9 +48,7 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 
 	FindGridCenterAndBottomLeft(GridCenterLocation, GridBottomLeftCornerLocation);
 
-	//destroy previous grid
-	GridTiles.Empty();
-	CombatGridVisual->DestroyGridVisual();
+	DestroyGrid();
 
 	//create new grid from current selected instance
 	const auto* RowData = GetCurrentShapeData();
@@ -94,6 +97,7 @@ void ACombatGrid::AddGridTile(const FTileData& TileData)
 {
 	GridTiles.Add(TileData.Index, TileData);
 	CombatGridVisual->UpdateTileVisual(TileData);
+	OnTileDataUpdated.Broadcast(TileData.Index);
 }
 
 void ACombatGrid::RemoveGridTile(const FIntPoint& Index)
@@ -101,7 +105,16 @@ void ACombatGrid::RemoveGridTile(const FIntPoint& Index)
 	if(GridTiles.Remove(Index))
 	{
 		CombatGridVisual->UpdateTileVisual({Index});
+		OnTileDataUpdated.Broadcast(Index);
 	}
+}
+
+void ACombatGrid::DestroyGrid()
+{
+	//destroy previous grid
+	GridTiles.Empty();
+	CombatGridVisual->DestroyGridVisual();
+	OnCombatGridDestroyed.Broadcast();
 }
 
 void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const
@@ -180,7 +193,7 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 		}
 		else
 		{
-			const auto ModifiedZ = FMath::GridSnap(Hits[0].Location.Z, GridTileSize.Z) - TraceRadius;
+			const auto ModifiedZ = FMath::GridSnap(Hits[0].Location.Z, GridTileSize.Z);// - TraceRadius;
 			Out_HitLocation = FVector(Location.X, Location.Y, ModifiedZ);
 		}
 	}
@@ -240,6 +253,7 @@ void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
 		{
 			GridTiles.Add(Data->Index, *Data);
 			CombatGridVisual->UpdateTileVisual(*Data);
+			OnTileDataUpdated.Broadcast(Index);
 		}
 	}
 }
@@ -253,6 +267,7 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 		{
 			GridTiles.Add(Data->Index, *Data);
 			CombatGridVisual->UpdateTileVisual(*Data);
+			OnTileDataUpdated.Broadcast(Index);
 		}
 	}
 }
@@ -260,6 +275,32 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 bool ACombatGrid::IsIndexValid(const FIntPoint& Index)
 {
 	return GridTiles.Contains(Index);
+}
+
+TArray<FIntPoint> ACombatGrid::GetAllTilesWithState(ETileState State)
+{
+	TArray<FIntPoint> Tiles;
+	for(auto& Pair : GridTiles)
+	{
+		if(Pair.Value.States.Contains(State))
+		{
+			Tiles.Add(Pair.Value.Index);
+		}
+	}
+	return Tiles;
+}
+
+void ACombatGrid::ClearStateFromTiles(ETileState State)
+{
+	for(auto TileIndex : GetAllTilesWithState(State))
+	{
+		RemoveStateFromTile(TileIndex, State);
+	}
+}
+
+TEnumAsByte<EGridShape> ACombatGrid::GetGridShape() const
+{
+	return GridShape;
 }
 
 const FGridShapeData* ACombatGrid::GetCurrentShapeData() const
@@ -365,3 +406,5 @@ FIntPoint ACombatGrid::GetTileIndexUnderCursor(int32 PlayerIndex)
 {
 	return GetTileIndexFromWorldLocation(GetCursorLocationOnGrid(PlayerIndex));
 }
+
+

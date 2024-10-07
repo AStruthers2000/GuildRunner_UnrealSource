@@ -9,8 +9,12 @@
 #include "GuildRunner/Grid/Utilities/FTileData.h"
 #include "CombatGrid.generated.h"
 
+class UCombatGridPathfinding;
 class UCombatGridVisualizer;
 class UDataTable;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileUpdateDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridDestroyedDelegate);
 
 UCLASS()
 class GUILDRUNNER_API ACombatGrid : public AActor
@@ -19,6 +23,9 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	UCombatGridVisualizer* CombatGridVisual;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
+	UCombatGridPathfinding* CombatGridPathfinding;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	FVector GridCenterLocation;
@@ -37,7 +44,15 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 	
 public:	
 	ACombatGrid();
+
+	/******************************************************************
+	 * Grid Callbacks
+	 ******************************************************************/
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatGridTileUpdateDelegate OnTileDataUpdated;
 	
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatGridDestroyedDelegate OnCombatGridDestroyed;
 
 private:
 	/******************************************************************
@@ -48,6 +63,7 @@ private:
 public:
 	void AddGridTile(const FTileData& TileData);
 	void RemoveGridTile(const FIntPoint& Index);
+	void DestroyGrid();
 private:
 	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
 public:
@@ -65,10 +81,14 @@ public:
 	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
 	FVector GetTileScale() const;
 	FVector GetGridTileSize() const { return GridTileSize; }
+	TEnumAsByte<EGridShape> GetGridShape() const;
 	const FGridShapeData* GetCurrentShapeData() const;
 	void AddStateToTile(const FIntPoint& Index, ETileState State);
 	void RemoveStateFromTile(const FIntPoint& Index, ETileState State);
 	bool IsIndexValid(const FIntPoint& Index);
+
+	TArray<FIntPoint> GetAllTilesWithState(ETileState State);
+	void ClearStateFromTiles(ETileState State);
 	
 	UFUNCTION(BlueprintCallable)
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
@@ -89,7 +109,12 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	FIntPoint GetTileIndexUnderCursor(int32 PlayerIndex);
-private:
+
+	/******************************************************************
+	 * Pathfinding
+	 ******************************************************************/
+public:
+	UCombatGridPathfinding* GetGridPathfinding() const { return CombatGridPathfinding; }
 	
 
 	
