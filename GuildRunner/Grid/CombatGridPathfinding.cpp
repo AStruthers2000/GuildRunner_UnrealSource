@@ -192,7 +192,7 @@ void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(FPathfindingData Tile
 
 	//if there are no elements in our discovered list, or if our cost is larger than the highest cost in the sorted
 	//DiscoveredTiles list, then it is already sorted so we just add the cost
-	if(DiscoveredTileSortingCosts.Num() == 0)
+	if(DiscoveredTileSortingCosts.Num() == 0 || SortingCost >= DiscoveredTileSortingCosts.Last())
 	{
 		DiscoveredTileSortingCosts.Add(SortingCost);
 		DiscoveredTileIndices.Add(TileData.Index);
