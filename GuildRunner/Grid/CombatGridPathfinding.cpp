@@ -39,11 +39,10 @@ TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoin
 	if(!IsInputDataValid()) return {};
 
 	//now do A* pathfinding
-	DiscoverTile({StartIndex, 1, 0, GetMinimumCostBetweenTwoTiles(StartIndex, TargetIndex, bUsingDiagonals)});
+	DiscoverTile({StartIndex, FPATHFINDINGDATA_DEFAULT_TILE_COST, 0, GetMinimumCostBetweenTwoTiles(StartIndex, TargetIndex, bUsingDiagonals)});
 	while(DiscoveredTileIndices.Num() > 0)
 	{
-		const bool bFoundTile = AnalyzeNextDiscoveredTile();
-		if(bFoundTile)
+		if(AnalyzeNextDiscoveredTile())
 		{
 			return GeneratePath();
 		}
@@ -59,6 +58,8 @@ void UCombatGridPathfinding::ClearGeneratedPathfindingData()
 	DiscoveredTileSortingCosts.Empty();
 	DiscoveredTileIndices.Empty();
 	AnalyzedTileIndices.Empty();
+
+	OnPathfindingDataCleared.Broadcast();
 }
 
 
@@ -74,21 +75,61 @@ bool UCombatGridPathfinding::IsInputDataValid() const
 	return true;
 }
 
-void UCombatGridPathfinding::DiscoverTile(FPathfindingData TilePathData)
+void UCombatGridPathfinding::DiscoverTile(const FPathfindingData& TilePathData)
 {
 	PathfindingData.Add(TilePathData.Index, TilePathData);
 	InsertTileIntoDiscoveredArray(TilePathData);
+
+	OnPathfindingDataUpdated.Broadcast(TilePathData.Index);
 }
 
-int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, const bool bUsingDiagonals)
+int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, const bool bUsingDiagonals) const
 {
-	if(bUsingDiagonals)
+	const int32 XComp = (Index1 - Index2).X;
+	const int32 YComp = (Index1 - Index2).Y;
+	switch(GridReference->GetGridShape())
 	{
-		return FMath::Max(FMath::Abs(Index1.X - Index2.X), FMath::Abs(Index1.Y - Index2.Y));
-	}
-	else
-	{
-		return FMath::Abs(Index1.X - Index2.X) + FMath::Abs(Index1.Y - Index2.Y);
+	case Square:
+		if(bUsingDiagonals)
+		{
+			return FMath::Max(FMath::Abs(XComp), FMath::Abs(YComp));
+		}
+		else
+		{
+			return FMath::Abs(XComp) + FMath::Abs(YComp);
+		}
+	case Hexagon:
+		return FMath::Abs(XComp) + FMath::Max((FMath::Abs(YComp) - FMath::Abs(XComp)) / 2, 0);
+	case Triangle:
+		{
+			if(bUsingDiagonals)
+			{
+				return FMath::Abs(XComp) + FMath::Abs(YComp);
+			}
+
+			const int32 AbsX = FMath::Abs(XComp);
+			const int32 AbsY = FMath::Abs(YComp);
+			const bool FirstComp = Index2.X < Index1.X ? AbsX <= AbsY : AbsX - 1 <= AbsY;
+			const bool SecondComp = Index2.X < Index1.X ? AbsX - 1 <= AbsY : AbsX <= AbsY;
+			const bool FacingUp = Index1.X % 2 == Index1.Y % 2;
+			const bool PartOfNormalZone = FacingUp ? FirstComp : SecondComp;
+			if(PartOfNormalZone)
+			{
+				return AbsX + AbsY;
+			}
+			
+			if(FacingUp)
+			{
+				return AbsX * 2;
+			}
+
+			const int32 BelowStarting = Index2.X < Index1.X ? -1 : 1;
+			const int32 StartFacingUp = FacingUp ? BelowStarting : -BelowStarting;
+			return AbsX * 2 + StartFacingUp;
+		}
+	case NoDefinedShape:
+	default:
+		return 0;
 	}
 }
 
@@ -111,7 +152,7 @@ bool UCombatGridPathfinding::AnalyzeNextDiscoveredTile()
 	return false;
 }
 
-TArray<FIntPoint> UCombatGridPathfinding::GeneratePath()
+TArray<FIntPoint> UCombatGridPathfinding::GeneratePath() const
 {
 	FIntPoint Current = TargetIndex;
 	TArray<FIntPoint> InvertedPath;
@@ -186,9 +227,9 @@ bool UCombatGridPathfinding::DiscoverNextNeighbor()
 	return CurrentNeighbor.Index == TargetIndex;
 }
 
-void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(FPathfindingData TileData)
+void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(const FPathfindingData& TileData)
 {
-	const int32 SortingCost = TileData.CostFromStart + TileData.MinimumCostToTarget;
+	const int32 SortingCost = GetTileSortingCost(TileData);
 
 	//if there are no elements in our discovered list, or if our cost is larger than the highest cost in the sorted
 	//DiscoveredTiles list, then it is already sorted so we just add the cost
@@ -211,6 +252,27 @@ void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(FPathfindingData Tile
 			break;
 		}
 	}
+}
+
+bool UCombatGridPathfinding::IsDiagonal(const FIntPoint& Index1, const FIntPoint& Index2) const
+{
+	//Get all of Index1's neighbors that are NOT diagonals, then see if Index2 is one of them. If Index2 is in Index1's
+	//non-diagonal neighbors, then Index2 is not diagonal from Index1
+	const auto NonDiagonals = GetValidTileNeighbors(Index1, false);
+	TArray<FIntPoint> NonDiagonalIndices;
+	for(const auto& Data : NonDiagonals)
+	{
+		NonDiagonalIndices.Add(Data.Index);
+	}
+	const bool ContainsIndex2 = NonDiagonalIndices.Contains(Index2);
+	return !ContainsIndex2;
+}
+
+int32 UCombatGridPathfinding::GetTileSortingCost(const FPathfindingData& Tile) const
+{
+	int32 SortingCost = (Tile.CostFromStart + Tile.MinimumCostToTarget) * COMBAT_GRID_NORMAL_COST;
+	SortingCost += IsDiagonal(Tile.Index, Tile.PreviousTile) ? COMBAT_GRID_DIAG_COST : 0;
+	return SortingCost;
 }
 
 
@@ -257,7 +319,7 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForSquare(con
 TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForHexagon(const FIntPoint& Index) const
 {
 	// Define the possible directions for neighbors
-	TArray<FIntPoint> AttemptedIndices = {
+	const TArray<FIntPoint> AttemptedIndices = {
 		{1, 1},
 		{0, 2},
 		{-1, 1},

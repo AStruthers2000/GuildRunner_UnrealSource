@@ -17,6 +17,7 @@ class GUILDRUNNER_API AAction_ShowTileNeighbors : public AGridAction
 public:
 	AAction_ShowTileNeighbors();
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))

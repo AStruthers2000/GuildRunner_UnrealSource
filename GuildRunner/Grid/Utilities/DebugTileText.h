@@ -31,10 +31,7 @@ public:
 	void UpdateTextOnTile(FIntPoint Index);
 
 	UFUNCTION(BlueprintCallable)
-	void SetShowTileIndices(bool bShowTileIndices);
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool GetShowTileText() const { return bShowTileText; }
+	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart, bool bSortOrder);
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,5 +42,27 @@ private:
 	UPROPERTY()
 	ACombatGrid* GridRef = nullptr;
 
-	bool bShowTileText = false;
+	UFUNCTION()
+	void UpdateTextOnAllTiles();
+	bool WantToDisplayAnyText() const;
+
+	UFUNCTION()
+	void ReUpdateAllTextAfterDelay(FIntPoint Index);
+	UFUNCTION()
+	void UpdateAllTextAfterDelay();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowTileIndices = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowCostToEnterTile = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowMinCostToTarget = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowCostFromStart = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowSortOrder = false;
 };

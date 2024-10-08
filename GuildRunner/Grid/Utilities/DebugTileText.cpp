@@ -6,6 +6,7 @@
 #include "Components/TextRenderComponent.h"
 #include "Engine/TextRenderActor.h"
 #include "GuildRunner/Grid/CombatGrid.h"
+#include "GuildRunner/Grid/CombatGridPathfinding.h"
 #include "GuildRunner/Grid/GridShapes/GridShapeUtilities.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -28,9 +29,15 @@ void ADebugTileText::BeginPlay()
 		return;
 	}
 
+	
 	//bind to grid events
 	GridRef->OnTileDataUpdated.AddDynamic(this, &ADebugTileText::UpdateTextOnTile);
 	GridRef->OnCombatGridDestroyed.AddDynamic(this, &ADebugTileText::ClearAllTextActors);
+	
+	//bind to pathfinding events
+	//GridRef->GetGridPathfinding()->OnPathfindingDataUpdated.AddDynamic(this, &ADebugTileText::UpdateTextOnTile);
+	GridRef->GetGridPathfinding()->OnPathfindingDataUpdated.AddDynamic(this, &ADebugTileText::ReUpdateAllTextAfterDelay);
+	GridRef->GetGridPathfinding()->OnPathfindingDataCleared.AddDynamic(this, &ADebugTileText::UpdateTextOnAllTiles);
 }
 
 
@@ -74,7 +81,7 @@ void ADebugTileText::ClearAllTextActors()
 void ADebugTileText::UpdateTextOnTile(const FIntPoint Index)
 {
 	//if we don't have a grid reference or if we don't want to show tile text
-	if(!GridRef || !bShowTileText) return;
+	if(!GridRef || !WantToDisplayAnyText()) return;
 	
 	const auto* TileData = GridRef->GetGridTiles().Find(Index);
 	
@@ -85,22 +92,76 @@ void ADebugTileText::UpdateTextOnTile(const FIntPoint Index)
 	}
 	else
 	{
+		TArray<FString> Text;
+		if(bShowTileIndices)
+		{
+			Text.Add( FString::Printf(TEXT("%d, %d"), Index.X, Index.Y));
+		}
+		
+		if(bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder)
+		{
+			const auto Tile = GridRef->GetGridPathfinding()->GetPathfindingData().Find(Index);
+			if(!Tile) return;
+			const FPathfindingData PathfindingData = *Tile;
+			if(bShowCostToEnterTile)
+			{
+				Text.Add(FString::Printf(TEXT("Enter cost: %d"), PathfindingData.CostToEnterTile));
+			}
+			if(bShowMinCostToTarget)
+			{
+				if(PathfindingData.MinimumCostToTarget != FPATHFINDINGDATA_DEFAULT_ROUTING_COST)
+				{
+					Text.Add(FString::Printf(TEXT("Min cost: %d"), PathfindingData.MinimumCostToTarget));
+				}
+			}
+			if(bShowCostFromStart)
+			{
+				if(PathfindingData.CostFromStart != FPATHFINDINGDATA_DEFAULT_ROUTING_COST)
+				{
+					Text.Add(FString::Printf(TEXT("Start cost: %d"), PathfindingData.CostFromStart));
+				}
+			}
+			if(bShowSortOrder)
+			{
+				const auto DiscoveredIndex = GridRef->GetGridPathfinding()->GetDiscoveredTileIndices().Find(Index);
+				if(DiscoveredIndex != INDEX_NONE)
+				{
+					const int32 SortingCost = GridRef->GetGridPathfinding()->GetDiscoveredTileSortingCosts()[DiscoveredIndex];
+					Text.Add(FString::Printf(TEXT("Sort order: %d (%d)"), DiscoveredIndex, SortingCost));
+				}
+			}
+		}
+
+		if(Text.Num() == 0)
+		{
+			return;
+		}
+		
 		auto* TextActor = GetTextActor(Index);
-		const FString Text = FString::Printf(TEXT("%d, %d"), Index.X, Index.Y);
-		TextActor->GetTextRender()->SetText(FText::FromString(Text));
+		TextActor->GetTextRender()->SetText(FText::FromString(FString::Join(Text, TEXT("\n"))));
 
 		FTransform TextTransform;
 		TextTransform.SetLocation(TileData->Transform.GetLocation() + FVector(0, 0, 5.f));
 		TextTransform.SetRotation(FRotator(90, 180, 0).Quaternion());
-		TextTransform.SetScale3D(FVector(2));
+		TextTransform.SetScale3D(FVector(1));
 		TextActor->SetActorTransform(TextTransform);
 	}
 }
 
-void ADebugTileText::SetShowTileIndices(const bool bShowTileIndices)
+void ADebugTileText::SetShowTileTexts(const bool bTileIndices, const bool bCostToEnterTile, const bool bMinCostToTarget, const bool bCostFromStart, const bool bSortOrder)
 {
-	bShowTileText = bShowTileIndices;
-	if(bShowTileIndices)
+	bShowTileIndices = bTileIndices;
+	bShowCostToEnterTile = bCostToEnterTile;
+	bShowMinCostToTarget = bMinCostToTarget;
+	bShowCostFromStart = bCostFromStart;
+	bShowSortOrder = bSortOrder;
+
+	UpdateTextOnAllTiles();
+}
+
+void ADebugTileText::UpdateTextOnAllTiles()
+{
+	if(WantToDisplayAnyText())
 	{
 		if(!GridRef) return;
 
@@ -117,7 +178,24 @@ void ADebugTileText::SetShowTileIndices(const bool bShowTileIndices)
 	}
 }
 
+bool ADebugTileText::WantToDisplayAnyText() const
+{
+	return bShowTileIndices || bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder;
+}
 
+void ADebugTileText::ReUpdateAllTextAfterDelay(FIntPoint Index)
+{
+	FLatentActionInfo ActionInfo;
+	ActionInfo.CallbackTarget = this;
+	ActionInfo.ExecutionFunction = "UpdateAllTextAfterDelay";
+	UKismetSystemLibrary::RetriggerableDelay(this, 0.1f, ActionInfo);
+}
+
+void ADebugTileText::UpdateAllTextAfterDelay()
+{
+	UE_LOG(LogTemp, Display, TEXT("Event triggered after delay"));
+	UpdateTextOnAllTiles();
+}
 
 
 

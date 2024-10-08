@@ -93,19 +93,20 @@ void APlayerGridActions::DeselectTile(const FInputActionValue& Value)
 AGridAction* APlayerGridActions::TrySpawnGridAction(AGridAction*& ActionObject, TSubclassOf<AGridAction> ActionClass)
 {
 	//if we have a valid player action, we want to destroy it
-	if(ActionObject->IsValidLowLevel())
+	if(ActionObject)
 	{
 		//Destroy(ActionObject);
+		ActionObject->EndPlay(EEndPlayReason::Destroyed);
 		ActionObject->Destroy();
 		ActionObject = nullptr;
 	}
-	if(ActionClass->IsValidLowLevel())
+	if(ActionClass)
 	{
-		FActorSpawnParameters RingParams;
-		RingParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		RingParams.bDeferConstruction = true;
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParameters.bDeferConstruction = true;
 
-		if(auto* SpawnedAction = GetWorld()->SpawnActor<AGridAction>(ActionClass, FVector::ZeroVector, FRotator::ZeroRotator, RingParams))
+		if(auto* SpawnedAction = GetWorld()->SpawnActor<AGridAction>(ActionClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters))
 		{
 			SpawnedAction->PlayerGridActions = this;
 			SpawnedAction->DispatchBeginPlay();

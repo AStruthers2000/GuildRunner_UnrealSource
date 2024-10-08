@@ -10,6 +10,12 @@
 struct FTileData;
 class ACombatGrid;
 
+#define COMBAT_GRID_NORMAL_COST 10
+#define COMBAT_GRID_DIAG_COST 14
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
+
 UCLASS()
 class GUILDRUNNER_API UCombatGridPathfinding : public UActorComponent
 {
@@ -21,6 +27,18 @@ public:
 	virtual void BeginPlay() override;
 
 	void SetGridPathfindingReference(ACombatGrid* Reference) { GridReference = Reference; }
+	TMap<FIntPoint, FPathfindingData> GetPathfindingData() const { return PathfindingData; }
+	TArray<FIntPoint> GetDiscoveredTileIndices() const { return DiscoveredTileIndices; }
+	TArray<int32> GetDiscoveredTileSortingCosts() const { return DiscoveredTileSortingCosts; }
+
+	/******************************************************************
+	 * Pathfinding Callbacks
+	 ******************************************************************/
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatPathfindingDataUpdateDelegate OnPathfindingDataUpdated;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatPathfindingDestroyedDelegate OnPathfindingDataCleared;
 
 private:
 	UPROPERTY()
@@ -38,13 +56,15 @@ public:
 
 private:
 	bool IsInputDataValid() const;
-	void DiscoverTile(FPathfindingData TilePathData);
-	static int GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, bool bUsingDiagonals);
+	void DiscoverTile(const FPathfindingData& TilePathData);
+	int GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, bool bUsingDiagonals) const;
 	bool AnalyzeNextDiscoveredTile();
-	TArray<FIntPoint> GeneratePath();
+	TArray<FIntPoint> GeneratePath() const;
 	FPathfindingData PullCheapestTileOutOfDiscoveredList();
 	bool DiscoverNextNeighbor();
-	void InsertTileIntoDiscoveredArray(FPathfindingData TileData);
+	void InsertTileIntoDiscoveredArray(const FPathfindingData& TileData);
+	bool IsDiagonal(const FIntPoint& Index1, const FIntPoint& Index2) const;
+	int32 GetTileSortingCost(const FPathfindingData& Tile) const;
 
 	FIntPoint StartIndex;
 	FIntPoint TargetIndex;

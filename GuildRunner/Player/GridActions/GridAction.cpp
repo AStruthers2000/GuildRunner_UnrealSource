@@ -25,6 +25,11 @@ void AGridAction::BeginPlay()
 	//}
 }
 
+void AGridAction::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+}
+
 void AGridAction::ExecuteGridAction(FIntPoint TileIndex)
 {
 }

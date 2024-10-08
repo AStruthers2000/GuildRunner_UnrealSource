@@ -16,6 +16,7 @@ class GUILDRUNNER_API AGridAction : public AActor
 public:	
 	AGridAction();
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void ExecuteGridAction(FIntPoint TileIndex);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
 	APlayerGridActions* PlayerGridActions;

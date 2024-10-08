@@ -23,3 +23,10 @@ void AAction_FindPathToTarget::ExecuteGridAction(FIntPoint TileIndex)
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsInPath);
 	}
 }
+
+void AAction_FindPathToTarget::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	ExecuteGridAction(FPATHFINDINGDATA_DEFAULT_INDEX);
+}

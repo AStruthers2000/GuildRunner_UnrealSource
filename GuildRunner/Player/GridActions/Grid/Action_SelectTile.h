@@ -18,7 +18,7 @@ public:
 	AAction_SelectTile();
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
 
-	virtual void Destroyed() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	
 	

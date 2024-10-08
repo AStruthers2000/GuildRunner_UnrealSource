@@ -1,6 +1,7 @@
 ﻿#include "Action_SelectTile.h"
 
 #include "GuildRunner/Grid/CombatGrid.h"
+#include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "GuildRunner/Player/PlayerGridActions.h"
 
 AAction_SelectTile::AAction_SelectTile()
@@ -22,12 +23,13 @@ void AAction_SelectTile::ExecuteGridAction(FIntPoint TileIndex)
 	else
 	{
 		PlayerGridActions->GetCombatGridReference()->RemoveStateFromTile(PlayerGridActions->GetSelectedTile(), Selected);
-		PlayerGridActions->SetSelectedTile({-999, -999});
+		PlayerGridActions->SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 	}
 }
 
-void AAction_SelectTile::Destroyed()
+void AAction_SelectTile::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::Destroyed();
-	ExecuteGridAction({-999, -999});
+	Super::EndPlay(EndPlayReason);
+
+	ExecuteGridAction(FPATHFINDINGDATA_DEFAULT_INDEX);
 }

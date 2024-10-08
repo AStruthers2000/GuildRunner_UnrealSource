@@ -24,3 +24,10 @@ void AAction_ShowTileNeighbors::ExecuteGridAction(FIntPoint TileIndex)
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Index, IsNeighbor);
 	}
 }
+
+void AAction_ShowTileNeighbors::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	ExecuteGridAction(FPATHFINDINGDATA_DEFAULT_INDEX);
+}
