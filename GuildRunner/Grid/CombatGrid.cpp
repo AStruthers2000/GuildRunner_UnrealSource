@@ -252,6 +252,9 @@ void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
 		if(Data->States.AddUnique(State) >= 0)
 		{
 			GridTiles.Add(Data->Index, *Data);
+			auto States = GetAllTilesWithState(State);
+			States.Add(Data->Index);
+			TileStateToIndices.Add(State, States);
 			CombatGridVisual->UpdateTileVisual(*Data);
 			OnTileDataUpdated.Broadcast(Index);
 		}
@@ -266,6 +269,9 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 		if(Data->States.Remove(State))
 		{
 			GridTiles.Add(Data->Index, *Data);
+			auto States = GetAllTilesWithState(State);
+			States.Remove(Index);
+			TileStateToIndices.Add(State, States);
 			CombatGridVisual->UpdateTileVisual(*Data);
 			OnTileDataUpdated.Broadcast(Index);
 		}
@@ -279,6 +285,7 @@ bool ACombatGrid::IsIndexValid(const FIntPoint& Index)
 
 TArray<FIntPoint> ACombatGrid::GetAllTilesWithState(ETileState State)
 {
+	/*
 	TArray<FIntPoint> Tiles;
 	for(auto& Pair : GridTiles)
 	{
@@ -288,6 +295,14 @@ TArray<FIntPoint> ACombatGrid::GetAllTilesWithState(ETileState State)
 		}
 	}
 	return Tiles;
+	*/
+
+	const auto TilesWithState = TileStateToIndices.Find(State);
+	if(TilesWithState)
+	{
+		return *TilesWithState;
+	}
+	return {};
 }
 
 void ACombatGrid::ClearStateFromTiles(ETileState State)

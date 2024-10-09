@@ -19,7 +19,16 @@ public:
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	UFUNCTION()
+	void OnPathfindingCompleted(TArray<FIntPoint> Path);
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIncludeDiagonals;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float DelayBetweenIterations = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float MaxMsPerFrame = 1.f;
 };

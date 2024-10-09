@@ -27,37 +27,59 @@ void UCombatGridPathfinding::BeginPlay()
  * A* Pathfinding
  ******************************************************************/
 
-TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals)
+TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, float Delay, float MaxMs)
 {
 	ClearGeneratedPathfindingData();
 	
 	StartIndex = StartTile;
 	TargetIndex = TargetTile;
 	bIncludeDiagonalsInPathfinding = bUsingDiagonals;
+	DelayBetweenIterations = Delay;
+	bCanCallDelayedPathfinding = false;
+	MaxMsPerFrame = MaxMs;
 
 	//if input data is invalid, we don't want to do pathfinding
-	if(!IsInputDataValid()) return {};
+	if(!IsInputDataValid())
+	{
+		OnPathfindingCompleted.Broadcast({});
+		return {};
+	}
 
 	//now do A* pathfinding
 	DiscoverTile({StartIndex, FPATHFINDINGDATA_DEFAULT_TILE_COST, 0, GetMinimumCostBetweenTwoTiles(StartIndex, TargetIndex, bUsingDiagonals)});
-	while(DiscoveredTileIndices.Num() > 0)
+	
+	if(DelayBetweenIterations <= 0.0f)
 	{
-		if(AnalyzeNextDiscoveredTile())
+		while(DiscoveredTileIndices.Num() > 0)
 		{
-			return GeneratePath();
+			if(AnalyzeNextDiscoveredTile())
+			{
+				const auto Path = GeneratePath();
+				OnPathfindingCompleted.Broadcast(Path);
+				return Path;
+			}
 		}
-	}
 
-	//we have analyzed every tile in the grid, so there is no possible path from start to end
-	return {};
+		//we have analyzed every tile in the grid, so there is no possible path from start to end
+		OnPathfindingCompleted.Broadcast({});
+		return {};
+	}
+	else
+	{
+		bCanCallDelayedPathfinding = true;
+		FindPathWithDelay();
+		return {};
+	}
 }
 
 void UCombatGridPathfinding::ClearGeneratedPathfindingData()
 {
+	UE_LOG(LogTemp, Display, TEXT("[UCombatGridPathfinding::ClearGeneratedPathfindingData]: Clearing pathfinding data"));
 	PathfindingData.Empty();
 	DiscoveredTileSortingCosts.Empty();
 	DiscoveredTileIndices.Empty();
 	AnalyzedTileIndices.Empty();
+	CurrentNeighbors.Empty();
 
 	OnPathfindingDataCleared.Broadcast();
 }
@@ -136,6 +158,7 @@ int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index
 bool UCombatGridPathfinding::AnalyzeNextDiscoveredTile()
 {
 	CurrentDiscoveredTile = PullCheapestTileOutOfDiscoveredList();
+	OnPathfindingDataUpdated.Broadcast(CurrentDiscoveredTile.Index);
 	CurrentNeighbors = GetValidTileNeighbors(CurrentDiscoveredTile.Index, bIncludeDiagonalsInPathfinding);
 
 	//check if any of the current neighbors are the target tile
@@ -408,5 +431,56 @@ bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, c
 
 	//if none of the checks happened, then this tile must be valid
 	return true;
+}
+
+
+/******************************************************************
+ * Delayed Pathfinding
+ ******************************************************************/
+
+void UCombatGridPathfinding::FindPathWithDelay()
+{
+	//while(DiscoveredTileIndices.Num() > 0)
+	if(bCanCallDelayedPathfinding)
+	{
+		LoopStartTime = FDateTime::Now();
+		PerformDelayedPathfinding();
+	}
+}
+
+void UCombatGridPathfinding::PerformDelayedPathfinding()
+{
+	if(DiscoveredTileIndices.Num() > 0)
+	{
+		if(AnalyzeNextDiscoveredTile())
+		{
+			const auto Path = GeneratePath();
+			OnPathfindingCompleted.Broadcast(Path);
+			//return Path;
+		}
+		else
+		{
+			if(MaxMsPerFrame > 0.f)
+			{
+				if((FDateTime::Now() - LoopStartTime).GetTotalMilliseconds() < MaxMsPerFrame)
+				{
+					PerformDelayedPathfinding();
+					return;
+				}
+			}
+
+			FLatentActionInfo ActionInfo;
+			ActionInfo.CallbackTarget = this;
+			ActionInfo.ExecutionFunction = "FindPathWithDelay";
+			ActionInfo.UUID = 54321;
+			ActionInfo.Linkage = 0;
+			UKismetSystemLibrary::RetriggerableDelay(this, DelayBetweenIterations, ActionInfo);
+		}
+	}
+	else
+	{
+		//we have analyzed every tile in the grid, so there is no possible path from start to end
+		OnPathfindingCompleted.Broadcast({});
+	}
 }
 

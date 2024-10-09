@@ -15,6 +15,7 @@ class ACombatGrid;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, FIntPoint, Index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, TArray<FIntPoint>, FullPath);
 
 UCLASS()
 class GUILDRUNNER_API UCombatGridPathfinding : public UActorComponent
@@ -29,6 +30,7 @@ public:
 	void SetGridPathfindingReference(ACombatGrid* Reference) { GridReference = Reference; }
 	TMap<FIntPoint, FPathfindingData> GetPathfindingData() const { return PathfindingData; }
 	TArray<FIntPoint> GetDiscoveredTileIndices() const { return DiscoveredTileIndices; }
+	TArray<FIntPoint> GetAnalyzedTileIndices() const { return AnalyzedTileIndices; }
 	TArray<int32> GetDiscoveredTileSortingCosts() const { return DiscoveredTileSortingCosts; }
 
 	/******************************************************************
@@ -40,6 +42,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatPathfindingDestroyedDelegate OnPathfindingDataCleared;
 
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatPathfindingCompletedDelegate OnPathfindingCompleted;
+
 private:
 	UPROPERTY()
 	ACombatGrid* GridReference = nullptr;
@@ -49,7 +54,7 @@ private:
 	 ******************************************************************/
 public:
 	UFUNCTION(BlueprintCallable)
-	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals);
+	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, float Delay, float MaxMs);
 
 	UFUNCTION(BlueprintCallable)
 	void ClearGeneratedPathfindingData();
@@ -90,4 +95,24 @@ private:
 	TArray<FPathfindingData> GetNeighborIndicesForTriangle(const FIntPoint& Index, bool bIncludeDiagonals) const;
 	TArray<FPathfindingData> CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
 	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor) const;
+
+	/******************************************************************
+	 * Delayed Pathfinding
+	 ******************************************************************/
+public:
+	UFUNCTION(BlueprintCallable)
+	void FindPathWithDelay();
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float DelayBetweenIterations;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float MaxMsPerFrame;
+
+	FDateTime LoopStartTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bCanCallDelayedPathfinding = false;
+
+	void PerformDelayedPathfinding();
 };

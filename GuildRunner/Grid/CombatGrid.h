@@ -94,6 +94,7 @@ public:
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
 private:
 	TMap<FIntPoint, FTileData> GridTiles;
+	TMap<ETileState, TArray<FIntPoint>> TileStateToIndices;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -33,6 +33,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart, bool bSortOrder);
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateStateOnTile(FIntPoint Index);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateStateOnAllTiles();
+
+	UFUNCTION(BlueprintCallable)
+	void SetShowTileStates(bool bShowDiscovered, bool bShowAnalyzed);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -47,9 +56,12 @@ private:
 	bool WantToDisplayAnyText() const;
 
 	UFUNCTION()
-	void ReUpdateAllTextAfterDelay(FIntPoint Index);
+	void ReUpdateAllAfterDelay(FIntPoint Index);
 	UFUNCTION()
-	void UpdateAllTextAfterDelay();
+	void ReUpdateAllAfterDelay_NoInput();
+	
+	UFUNCTION()
+	void UpdateAllAfterDelay();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bShowTileIndices = false;
@@ -65,4 +77,12 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bShowSortOrder = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowDiscoveredTiles = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowAnalyzedTiles = false;
+
+	float LastCalledDelayFunctionTime = 0.f;
 };

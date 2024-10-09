@@ -36,7 +36,9 @@ void ADebugTileText::BeginPlay()
 	
 	//bind to pathfinding events
 	//GridRef->GetGridPathfinding()->OnPathfindingDataUpdated.AddDynamic(this, &ADebugTileText::UpdateTextOnTile);
-	GridRef->GetGridPathfinding()->OnPathfindingDataUpdated.AddDynamic(this, &ADebugTileText::ReUpdateAllTextAfterDelay);
+	GridRef->GetGridPathfinding()->OnPathfindingDataUpdated.AddDynamic(this, &ADebugTileText::UpdateStateOnTile);
+	GridRef->GetGridPathfinding()->OnPathfindingDataCleared.AddDynamic(this, &ADebugTileText::UpdateStateOnAllTiles);
+	GridRef->GetGridPathfinding()->OnPathfindingDataUpdated.AddDynamic(this, &ADebugTileText::UpdateTextOnTile);
 	GridRef->GetGridPathfinding()->OnPathfindingDataCleared.AddDynamic(this, &ADebugTileText::UpdateTextOnAllTiles);
 }
 
@@ -101,43 +103,48 @@ void ADebugTileText::UpdateTextOnTile(const FIntPoint Index)
 		if(bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder)
 		{
 			const auto Tile = GridRef->GetGridPathfinding()->GetPathfindingData().Find(Index);
-			if(!Tile) return;
-			const FPathfindingData PathfindingData = *Tile;
-			if(bShowCostToEnterTile)
+			if(Tile)
 			{
-				Text.Add(FString::Printf(TEXT("Enter cost: %d"), PathfindingData.CostToEnterTile));
-			}
-			if(bShowMinCostToTarget)
-			{
-				if(PathfindingData.MinimumCostToTarget != FPATHFINDINGDATA_DEFAULT_ROUTING_COST)
+				const FPathfindingData PathfindingData = *Tile;
+				if(bShowCostToEnterTile)
 				{
-					Text.Add(FString::Printf(TEXT("Min cost: %d"), PathfindingData.MinimumCostToTarget));
+					Text.Add(FString::Printf(TEXT("Enter cost: %d"), PathfindingData.CostToEnterTile));
 				}
-			}
-			if(bShowCostFromStart)
-			{
-				if(PathfindingData.CostFromStart != FPATHFINDINGDATA_DEFAULT_ROUTING_COST)
+				if(bShowMinCostToTarget)
 				{
-					Text.Add(FString::Printf(TEXT("Start cost: %d"), PathfindingData.CostFromStart));
+					if(PathfindingData.MinimumCostToTarget != FPATHFINDINGDATA_DEFAULT_ROUTING_COST)
+					{
+						Text.Add(FString::Printf(TEXT("Min cost: %d"), PathfindingData.MinimumCostToTarget));
+					}
 				}
-			}
-			if(bShowSortOrder)
-			{
-				const auto DiscoveredIndex = GridRef->GetGridPathfinding()->GetDiscoveredTileIndices().Find(Index);
-				if(DiscoveredIndex != INDEX_NONE)
+				if(bShowCostFromStart)
 				{
-					const int32 SortingCost = GridRef->GetGridPathfinding()->GetDiscoveredTileSortingCosts()[DiscoveredIndex];
-					Text.Add(FString::Printf(TEXT("Sort order: %d (%d)"), DiscoveredIndex, SortingCost));
+					if(PathfindingData.CostFromStart != FPATHFINDINGDATA_DEFAULT_ROUTING_COST)
+					{
+						Text.Add(FString::Printf(TEXT("Start cost: %d"), PathfindingData.CostFromStart));
+					}
+				}
+				if(bShowSortOrder)
+				{
+					const auto DiscoveredIndex = GridRef->GetGridPathfinding()->GetDiscoveredTileIndices().Find(Index);
+					if(DiscoveredIndex != INDEX_NONE)
+					{
+						const int32 SortingCost = GridRef->GetGridPathfinding()->GetDiscoveredTileSortingCosts()[DiscoveredIndex];
+						Text.Add(FString::Printf(TEXT("Sort order: %d (%d)"), DiscoveredIndex, SortingCost));
+					}
 				}
 			}
 		}
+
+		auto* TextActor = GetTextActor(Index);
+		TextActor->GetTextRender()->SetText(FText::FromString(""));
 
 		if(Text.Num() == 0)
 		{
 			return;
 		}
 		
-		auto* TextActor = GetTextActor(Index);
+		
 		TextActor->GetTextRender()->SetText(FText::FromString(FString::Join(Text, TEXT("\n"))));
 
 		FTransform TextTransform;
@@ -159,12 +166,72 @@ void ADebugTileText::SetShowTileTexts(const bool bTileIndices, const bool bCostT
 	UpdateTextOnAllTiles();
 }
 
+void ADebugTileText::UpdateStateOnTile(FIntPoint Index)
+{
+	if(bShowDiscoveredTiles)
+	{
+		if(GridRef->GetGridPathfinding()->GetDiscoveredTileIndices().Contains(Index))
+		{
+			GridRef->AddStateToTile(Index, IsDiscovered);
+		}
+		else
+		{
+			GridRef->RemoveStateFromTile(Index, IsDiscovered);
+		}
+	}
+	else
+	{
+		GridRef->RemoveStateFromTile(Index, IsDiscovered);
+	}
+
+	if(bShowAnalyzedTiles)
+	{
+		if(GridRef->GetGridPathfinding()->GetAnalyzedTileIndices().Contains(Index))
+		{
+			GridRef->AddStateToTile(Index, IsAnalyzed);
+		}
+		else
+		{
+			GridRef->RemoveStateFromTile(Index, IsAnalyzed);
+		}
+	}
+	else
+	{
+		GridRef->RemoveStateFromTile(Index, IsAnalyzed);
+	}
+}
+
+void ADebugTileText::UpdateStateOnAllTiles()
+{
+	if(bShowDiscoveredTiles || bShowAnalyzedTiles)
+	{
+		for(const auto& Pair : GridRef->GetGridTiles())
+		{
+			UpdateStateOnTile(Pair.Key);
+		}
+	}
+	else
+	{
+		GridRef->ClearStateFromTiles(IsDiscovered);
+		GridRef->ClearStateFromTiles(IsAnalyzed);
+	}
+}
+
+void ADebugTileText::SetShowTileStates(bool bShowDiscovered, bool bShowAnalyzed)
+{
+	bShowDiscoveredTiles = bShowDiscovered;
+	bShowAnalyzedTiles = bShowAnalyzed;
+
+	UpdateStateOnAllTiles();
+}
+
 void ADebugTileText::UpdateTextOnAllTiles()
 {
 	if(WantToDisplayAnyText())
 	{
 		if(!GridRef) return;
-
+		
+		ClearAllTextActors();
 		TArray<FIntPoint> Keys;
 		GridRef->GetGridTiles().GetKeys(Keys);
 		for(const auto& Key : Keys)
@@ -183,18 +250,25 @@ bool ADebugTileText::WantToDisplayAnyText() const
 	return bShowTileIndices || bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder;
 }
 
-void ADebugTileText::ReUpdateAllTextAfterDelay(FIntPoint Index)
+void ADebugTileText::ReUpdateAllAfterDelay(FIntPoint Index)
 {
 	FLatentActionInfo ActionInfo;
 	ActionInfo.CallbackTarget = this;
-	ActionInfo.ExecutionFunction = "UpdateAllTextAfterDelay";
+	ActionInfo.ExecutionFunction = "UpdateAllAfterDelay";
+	ActionInfo.UUID = 12345;
+	ActionInfo.Linkage = 0;
 	UKismetSystemLibrary::RetriggerableDelay(this, 0.1f, ActionInfo);
 }
 
-void ADebugTileText::UpdateAllTextAfterDelay()
+void ADebugTileText::ReUpdateAllAfterDelay_NoInput()
 {
-	UE_LOG(LogTemp, Display, TEXT("Event triggered after delay"));
+	UpdateAllAfterDelay();
+}
+
+void ADebugTileText::UpdateAllAfterDelay()
+{
 	UpdateTextOnAllTiles();
+	UpdateStateOnAllTiles();
 }
 
 
