@@ -18,7 +18,7 @@ UCombatGridMeshInstance::UCombatGridMeshInstance()
 	InstancedMesh->NumCustomDataFloats = 4;
 }
 
-void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const FTransform& Transform, const TArray<TEnumAsByte<ETileState>>& TileStates)
+void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const TEnumAsByte<ETileType> Type, const FTransform& Transform, const TArray<TEnumAsByte<ETileState>>& TileStates)
 {
 	//removes the index first before adding it, effectively updating the transform
 	RemoveInstance(Index);
@@ -26,7 +26,7 @@ void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const FTransfo
 	const auto I = InstanceIndices.Add(Index);
 
 	float IsFilledValue = 0.0f;
-	const auto Color = GetColorFromStates(TileStates, IsFilledValue);
+	const auto Color = GetColorFromStatesOrTileType(TileStates, Type, IsFilledValue);
 	InstancedMesh->SetCustomDataValue(I, 0, Color.R);
 	InstancedMesh->SetCustomDataValue(I, 1, Color.G);
 	InstancedMesh->SetCustomDataValue(I, 2, Color.B);
@@ -48,11 +48,12 @@ void UCombatGridMeshInstance::ClearInstances()
 	InstanceIndices.Empty();
 }
 
-void UCombatGridMeshInstance::InitializeGridMeshInstance(UStaticMesh* NewMesh, UMaterialInstance* NewMaterial, const FLinearColor NewColor, const ECollisionEnabled::Type CollisionType)
+void UCombatGridMeshInstance::InitializeGridMeshInstance(UStaticMesh* NewMesh, UMaterialInstance* NewMaterial, const bool bColorFromTileType, const ECollisionEnabled::Type CollisionType)
 {
 	InstancedMesh->SetStaticMesh(NewMesh);
 	InstancedMesh->SetMaterial(0, NewMaterial);
-	InstancedMesh->SetVectorParameterValueOnMaterials("Color", FVector(NewColor.R, NewColor.G, NewColor.B));
+	//InstancedMesh->SetVectorParameterValueOnMaterials("Color", FVector(NewColor.R, NewColor.G, NewColor.B));
+	bIsColorBasedOnTileType = bColorFromTileType;
 	InstancedMesh->SetCollisionEnabled(CollisionType);
 }
 
@@ -62,41 +63,67 @@ void UCombatGridMeshInstance::AdjustInstanceMeshOffsetFromGround(const float Off
 	InstancedMesh->SetWorldLocation(FVector(Location.X, Location.Y, Offset));
 }
 
-FLinearColor UCombatGridMeshInstance::GetColorFromStates(const TArray<TEnumAsByte<ETileState>>& States, float& IsFilledValue)
+FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<TEnumAsByte<ETileState>>& States, const TEnumAsByte<ETileType>& TileType, float& IsFilledValue)
 {
 	IsFilledValue = 0.f;
-	if(States.IsEmpty()) return FLinearColor(0, 0, 0, 1);
 
-	//this list is the priority of our colors
-	for (const auto& State : {Selected, Hovered, IsNeighbor, IsInPath, IsDiscovered, IsAnalyzed})
+	if(bIsColorBasedOnTileType)
 	{
-		if(States.Contains(State))
+		IsFilledValue = 1.f;
+		switch (TileType)
 		{
-			switch (State)
+		case Normal:
+			return NormalCostColor;
+		case DoubleCost:
+			return DoubleCostColor;
+		case TripleCost:
+			return TripleCostColor;
+		case FlyingUnitsOnly:
+			return FlyingUnitsOnlyColor;
+		case Obstacle:
+			return ObstacleColor;
+		case NoTile:
+		default:
+			return FLinearColor(0, 0, 0, 1);
+		}
+	}
+	else
+	{
+		if(States.IsEmpty()) return FLinearColor(0, 0, 0, 1);
+
+		//this list is the priority of our colors
+		for (const auto& State : {Selected, Hovered, IsNeighbor, IsInPath, IsDiscovered, IsAnalyzed})
+		{
+			if(States.Contains(State))
 			{
-			case Selected:
 				IsFilledValue = 1.f;
-				return FLinearColor(0.392157, 0.094118, 0, 1);
-			case Hovered:
-				IsFilledValue = 1.f;
-				return FLinearColor(1.0, 0.87450980392156862745098039215686, 0, 1);
-			case IsNeighbor:
-				IsFilledValue = 1.f;
-				return FLinearColor(243.f/255.f, 58.f/255.f, 106.f/255.f, 1);
-			case IsInPath:
-				IsFilledValue = 1.f;
-				return FLinearColor(75.f/255.f, 249.f/255.f, 1, 1);
-			case IsDiscovered:
-				IsFilledValue = 1.f;
-				return FLinearColor(250.f/255.f, 128.f/255.f, 114.f/255.f, 1);
-			case IsAnalyzed:
-				IsFilledValue = 1.f;
-				return FLinearColor(1, 0, 125.f/255.f, 1);
-			case None:
-			default: return FLinearColor(0, 0, 0, 1);
+				switch (State)
+				{
+				case Selected:
+					return SelectedColor;
+				case Hovered:
+					return HoveredColor;
+				case IsNeighbor:
+					return NeighborColor;
+				case IsInPath:
+					return InPathColor;
+				case IsDiscovered:
+					return DiscoveredColor;
+				case IsAnalyzed:
+					return AnalyzedColor;
+				case None:
+				default:
+					IsFilledValue = 0.f;
+					return FLinearColor(0, 0, 0, 1);
+				}
 			}
 		}
 	}
 	return FLinearColor(0, 0, 0, 1);
+}
+
+void UCombatGridMeshInstance::HideInstancedStaticMeshInGame(const bool bHidden) const
+{
+	InstancedMesh->SetHiddenInGame(bHidden);
 }
 
