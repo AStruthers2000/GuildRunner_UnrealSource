@@ -99,6 +99,14 @@ void ADebugTileText::UpdateTextOnTile(const FIntPoint Index)
 		{
 			Text.Add( FString::Printf(TEXT("%d, %d"), Index.X, Index.Y));
 		}
+
+		if(bShowTileType)
+		{
+			if(TileData->Type != Normal)
+			{
+				Text.Add(FString::Printf(TEXT("%s"), *UEnum::GetValueAsString(TileData->Type)));
+			}
+		}
 		
 		if(bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder)
 		{
@@ -155,13 +163,14 @@ void ADebugTileText::UpdateTextOnTile(const FIntPoint Index)
 	}
 }
 
-void ADebugTileText::SetShowTileTexts(const bool bTileIndices, const bool bCostToEnterTile, const bool bMinCostToTarget, const bool bCostFromStart, const bool bSortOrder)
+void ADebugTileText::SetShowTileTexts(const bool bTileIndices, const bool bCostToEnterTile, const bool bMinCostToTarget, const bool bCostFromStart, const bool bSortOrder, const bool bShowType)
 {
 	bShowTileIndices = bTileIndices;
 	bShowCostToEnterTile = bCostToEnterTile;
 	bShowMinCostToTarget = bMinCostToTarget;
 	bShowCostFromStart = bCostFromStart;
 	bShowSortOrder = bSortOrder;
+	bShowTileType = bShowType; 
 
 	UpdateTextOnAllTiles();
 }
@@ -247,7 +256,7 @@ void ADebugTileText::UpdateTextOnAllTiles()
 
 bool ADebugTileText::WantToDisplayAnyText() const
 {
-	return bShowTileIndices || bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder;
+	return bShowTileIndices || bShowCostToEnterTile || bShowMinCostToTarget || bShowCostFromStart || bShowSortOrder || bShowTileType;
 }
 
 void ADebugTileText::ReUpdateAllAfterDelay(FIntPoint Index)

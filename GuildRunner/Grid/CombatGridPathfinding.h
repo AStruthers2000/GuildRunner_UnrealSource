@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Utilities/FPathfindingData.h"
+#include "Utilities/FTileData.h"
 #include "CombatGridPathfinding.generated.h"
 
 struct FTileData;
@@ -54,7 +55,7 @@ private:
 	 ******************************************************************/
 public:
 	UFUNCTION(BlueprintCallable)
-	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, float Delay, float MaxMs);
+	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs);
 
 	UFUNCTION(BlueprintCallable)
 	void ClearGeneratedPathfindingData();
@@ -94,7 +95,9 @@ private:
 	TArray<FPathfindingData> GetNeighborIndicesForHexagon(const FIntPoint& Index) const;
 	TArray<FPathfindingData> GetNeighborIndicesForTriangle(const FIntPoint& Index, bool bIncludeDiagonals) const;
 	TArray<FPathfindingData> CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
-	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor) const;
+	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const;
+	static int32 CalculateCostToEnterTile(const FTileData& InputTile);
+	TArray<TEnumAsByte<ETileType>> ValidWalkableTiles = {Normal, DoubleCost, TripleCost, FlyingUnitsOnly};
 
 	/******************************************************************
 	 * Delayed Pathfinding

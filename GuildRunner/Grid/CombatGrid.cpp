@@ -159,7 +159,7 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 {
 	TArray<FHitResult> Hits;
 	const auto TraceStart = Location + FVector(0.f, 0.f, 10000.f);
-	const auto TraceEnd = Location - FVector(0.f, 0.f, 10000.f);
+	const auto TraceEnd = Location - FVector(0.f, 0.f, 100000.f);
 	const auto TraceRadius = GridTileSize.X / GridShape == Triangle ? 5.f : GridShape == Hexagon ? 4.f : 3.f;
 	FCollisionQueryParams Params;
 	Params.bTraceComplex = false;
@@ -177,24 +177,34 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 		Params,
 		Responses) : false;
 
-	if(Hits.Num() == 0 || bHit == false)
+	if(Hits.Num() == 0)
 	{
 		Out_HitLocation = Location;
 		return NoTile;
 	}
 
 	ETileType HitTileType = Normal;
+	bool bIsHeightFound = false;
 	for(const auto& HitResult : Hits)
 	{
+		const auto ModifiedZ = FMath::GridSnap(HitResult.Location.Z - TraceRadius, GridTileSize.Z);// - TraceRadius;
 		const auto* HitGridObject = Cast<ACombatGridModifier>(HitResult.GetActor());
 		if(HitGridObject)
 		{
 			HitTileType = HitGridObject->GetTileType();
+			UE_LOG(LogTemp, Display, TEXT("Hit grid modifier %s at location %s"), *UEnum::GetValueAsString(HitTileType), *Location.ToString());
+			if(HitGridObject->GetUseTileHeight())
+			{
+				bIsHeightFound = true;
+				Out_HitLocation = FVector(Location.X, Location.Y, ModifiedZ);
+			}
 		}
 		else
 		{
-			const auto ModifiedZ = FMath::GridSnap(Hits[0].Location.Z, GridTileSize.Z);// - TraceRadius;
-			Out_HitLocation = FVector(Location.X, Location.Y, ModifiedZ);
+			if(!bIsHeightFound)
+			{
+				Out_HitLocation = FVector(Location.X, Location.Y, ModifiedZ);
+			}
 		}
 	}
 	return HitTileType;

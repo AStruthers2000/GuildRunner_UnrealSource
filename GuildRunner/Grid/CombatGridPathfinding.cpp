@@ -27,13 +27,14 @@ void UCombatGridPathfinding::BeginPlay()
  * A* Pathfinding
  ******************************************************************/
 
-TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, float Delay, float MaxMs)
+TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs)
 {
 	ClearGeneratedPathfindingData();
 	
 	StartIndex = StartTile;
 	TargetIndex = TargetTile;
 	bIncludeDiagonalsInPathfinding = bUsingDiagonals;
+	ValidWalkableTiles = ValidTileTypes;
 	DelayBetweenIterations = Delay;
 	bCanCallDelayedPathfinding = false;
 	MaxMsPerFrame = MaxMs;
@@ -84,7 +85,6 @@ void UCombatGridPathfinding::ClearGeneratedPathfindingData()
 	OnPathfindingDataCleared.Broadcast();
 }
 
-
 bool UCombatGridPathfinding::IsInputDataValid() const
 {
 	//if we are pathfinding to the tile we clicked on, we don't need to do pathfinding
@@ -93,6 +93,11 @@ bool UCombatGridPathfinding::IsInputDataValid() const
 	//if the start tile or the end tile aren't actually walkable tiles, we don't need to do pathfinding
 	if(!GridReference->IsTileWalkable(StartIndex)) return false;
 	if(!GridReference->IsTileWalkable(TargetIndex)) return false;
+
+	//if the target tile isn't a tile that this unit can walk on, we don't need pathfinding
+	const auto TargetTile = GridReference->GetGridTiles().Find(TargetIndex);
+	if(!TargetTile || !ValidWalkableTiles.Contains(TargetTile->Type)) return false;
+	
 
 	return true;
 }
@@ -397,10 +402,12 @@ TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(const F
     
 	// Check all potential neighbors
 	for (const auto& Direction : AttemptedNeighbors) {
-		FIntPoint Neighbor = {Index.X + Direction.X, Index.Y + Direction.Y};
-		if (ValidateNeighborIndex(InputTile, Neighbor))
+		const FIntPoint Neighbor = {Index.X + Direction.X, Index.Y + Direction.Y};
+		if (ValidateNeighborIndex(InputTile, Neighbor, ValidWalkableTiles))
 		{
-			FPathfindingData TempPathfindingData = {Neighbor};
+			FPathfindingData TempPathfindingData;
+			TempPathfindingData.Index = Neighbor;
+			TempPathfindingData.CostToEnterTile = CalculateCostToEnterTile(InputTile);
 			TempPathfindingData.PreviousTile = Index;
 			Neighbors.Add(TempPathfindingData);
 		}
@@ -409,7 +416,7 @@ TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(const F
 	return Neighbors;
 }
 
-bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor) const
+bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const
 {
 	if(!GridReference->IsIndexValid(Neighbor)) return false;
 
@@ -417,7 +424,9 @@ bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, c
 	if(!NeighborData) return false;
 	
 	
-	if(!UGridShapeUtilities::IsTileTypeWalkable(NeighborData->Type)) return false;
+	//if(!UGridShapeUtilities::IsTileTypeWalkable(NeighborData->Type)) return false;
+	//if the neighbor isn't a valid walkable tile type (some units can walk on FlyingUnitsOnly, etc.)
+	if(!ValidTileTypes.Contains(NeighborData->Type)) return false;
 
 	const float MyHeight = InputTile.Transform.GetLocation().Z;
 	const float NeighborHeight = NeighborData->Transform.GetLocation().Z;
@@ -431,6 +440,24 @@ bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, c
 
 	//if none of the checks happened, then this tile must be valid
 	return true;
+}
+
+int32 UCombatGridPathfinding::CalculateCostToEnterTile(const FTileData& InputTile)
+{
+	switch (InputTile.Type)
+	{
+	case Normal:
+		return FPATHFINDINGDATA_DEFAULT_TILE_COST;
+	case DoubleCost:
+		return FPATHFINDINGDATA_DEFAULT_TILE_COST * 2;
+	case TripleCost:
+		return FPATHFINDINGDATA_DEFAULT_TILE_COST * 3;
+	case FlyingUnitsOnly:
+		return FPATHFINDINGDATA_DEFAULT_TILE_COST;
+	case Obstacle:
+	case NoTile:
+	default: return 0;
+	}
 }
 
 

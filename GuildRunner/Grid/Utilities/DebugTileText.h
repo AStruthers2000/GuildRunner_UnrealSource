@@ -31,7 +31,7 @@ public:
 	void UpdateTextOnTile(FIntPoint Index);
 
 	UFUNCTION(BlueprintCallable)
-	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart, bool bSortOrder);
+	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart, bool bSortOrder, bool bShowType);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateStateOnTile(FIntPoint Index);
@@ -77,6 +77,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bShowSortOrder = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bShowTileType = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bShowDiscoveredTiles = false;

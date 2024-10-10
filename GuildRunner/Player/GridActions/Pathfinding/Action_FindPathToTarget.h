@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GuildRunner/Grid/Utilities/ETileType.h"
 #include "GuildRunner/Player/GridActions/GridAction.h"
 #include "Action_FindPathToTarget.generated.h"
 
@@ -27,8 +28,13 @@ private:
 	bool bIncludeDiagonals;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bFlyingUnit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float DelayBetweenIterations = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float MaxMsPerFrame = 1.f;
+
+	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
 };

@@ -32,10 +32,19 @@ void ACombatGridModifier::ConfigureMesh()
 	switch (TileType)
 	{
 	case Normal:
-		MeshColor = FLinearColor(1, 1, 1, 1);
+		MeshColor = NormalObstacleColor;
 		break;
 	case Obstacle:
-		MeshColor = FLinearColor(1, 0, 0, 1);
+		MeshColor = BlockingObstacleColor;
+		break;
+	case DoubleCost:
+		MeshColor = DoubleObstacleColor;
+		break;
+	case TripleCost:
+		MeshColor = TripleObstacleColor;
+		break;
+	case FlyingUnitsOnly:
+		MeshColor = FlyingOnlyObstacleColor;
 		break;
 	case NoTile:
 	default: return;

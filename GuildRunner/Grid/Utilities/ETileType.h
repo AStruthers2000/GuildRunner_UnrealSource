@@ -7,5 +7,8 @@ enum ETileType
 {
 	NoTile,
 	Normal,
-	Obstacle
+	Obstacle,
+	DoubleCost,
+	TripleCost,
+	FlyingUnitsOnly
 };
