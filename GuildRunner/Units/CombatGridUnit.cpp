@@ -3,6 +3,9 @@
 
 #include "CombatGridUnit.h"
 
+#include "Utilities/FCombatGridUnitData.h"
+#include "Utilities/UnitsUtilities.h"
+
 ACombatGridUnit::ACombatGridUnit()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -13,6 +16,8 @@ ACombatGridUnit::ACombatGridUnit()
 	RootComponent = DefaultRoot;
 	SkeletalMesh->SetupAttachment(RootComponent);
 	SkeletalMesh->SetWorldRotation(FRotator(0, -90, 0));
+	
+	ConfigureUnitOnConstruct();
 	//SkeletalMesh->SetSkeletalMesh()
 }
 
@@ -27,4 +32,24 @@ void ACombatGridUnit::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void ACombatGridUnit::ConfigureUnitOnConstruct() const
+{
+	const auto* UnitData = UUnitsUtilities::GetDefaultUnitDataFromUnitType(UnitType);
+	if(!UnitData || UnitData->UnitType == NoUnitSelected) return;
+	
+	SkeletalMesh->SetSkeletalMesh(UnitData->Assets.Mesh);
+	SkeletalMesh->SetAnimInstanceClass(UnitData->Assets.Animation.LoadSynchronous());
+	SkeletalMesh->InitAnim(true);
+
+	UE_LOG(LogTemp, Display, TEXT("Spawning unit of type: %s"), *UEnum::GetDisplayValueAsText(UnitType).ToString());
+}
+
+#if WITH_EDITOR
+void ACombatGridUnit::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	ConfigureUnitOnConstruct();
+}
+#endif
 

@@ -12,11 +12,11 @@ class GUILDRUNNER_API ACombatGridUnit : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* SkeletalMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<EUnitType> UnitType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	TEnumAsByte<EUnitType> UnitType = Warrior;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -25,6 +25,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+private:
+	void ConfigureUnitOnConstruct() const;
+
+#if WITH_EDITOR
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 	
 };

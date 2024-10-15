@@ -5,6 +5,7 @@
 UENUM(BlueprintType)
 enum EUnitType
 {
+	NoUnitSelected,
 	Warrior,
 	Ranger,
 	Priest,
