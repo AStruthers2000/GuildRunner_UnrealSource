@@ -24,7 +24,7 @@ ACombatGridUnit::ACombatGridUnit()
 void ACombatGridUnit::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	ConfigureUnitOnConstruct();
 }
 
 void ACombatGridUnit::Tick(float DeltaTime)

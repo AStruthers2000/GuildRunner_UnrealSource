@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "PlayerGridActions.generated.h"
 
+class ACombatSystem;
 class AGridAction;
 struct FInputActionValue;
 class UInputMappingContext;
@@ -43,7 +44,8 @@ public:
 	void SetHoveredTile(const FIntPoint& NewIndex) { HoveredTile = NewIndex; }
 	FIntPoint GetSelectedTile() const { return SelectedTile; }
 	void SetSelectedTile(const FIntPoint& NewIndex) { SelectedTile = NewIndex; }
-	ACombatGrid* GetCombatGridReference() { return GridReference; }
+	ACombatGrid* GetCombatGridReference() const { return GridReference; }
+	ACombatSystem* GetCombatSystemReference() const { return CombatSystemReference; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetSelectedActions(TSubclassOf<AGridAction> SelectedAction, TSubclassOf<AGridAction> DeselectedAction);
@@ -59,6 +61,9 @@ protected:
 private:
 	UPROPERTY()
 	ACombatGrid* GridReference;
+	UPROPERTY()
+	ACombatSystem* CombatSystemReference;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AGridAction* LeftClickAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

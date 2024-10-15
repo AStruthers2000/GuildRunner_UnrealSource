@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "EUnitType.h"
 #include "GameFramework/Actor.h"
+#include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "CombatGridUnit.generated.h"
 
 UCLASS()
@@ -15,12 +16,19 @@ class GUILDRUNNER_API ACombatGridUnit : public AActor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* SkeletalMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
 	TEnumAsByte<EUnitType> UnitType = Warrior;
 	
 public:	
-	// Sets default values for this actor's properties
 	ACombatGridUnit();
+
+	UFUNCTION(BlueprintCallable)
+	void SetIndexOnGrid(const FIntPoint Index) { IndexOnGrid = Index; }
+
+	UFUNCTION(BlueprintCallable)
+	FIntPoint GetIndexOnGrid() const { return IndexOnGrid; }
+
+	void SetUnitType(const TEnumAsByte<EUnitType> Type) { UnitType = Type; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -29,8 +37,11 @@ protected:
 private:
 	void ConfigureUnitOnConstruct() const;
 
+	UPROPERTY(VisibleAnywhere)
+	FIntPoint IndexOnGrid = FPATHFINDINGDATA_DEFAULT_INDEX;
+
 #if WITH_EDITOR
-	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 	

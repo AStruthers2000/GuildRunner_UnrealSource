@@ -15,6 +15,7 @@ class UDataTable;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileUpdateDelegate, FIntPoint, Index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridDestroyedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridGeneratedDelegate);
 
 UCLASS()
 class GUILDRUNNER_API ACombatGrid : public AActor
@@ -54,6 +55,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatGridDestroyedDelegate OnCombatGridDestroyed;
 
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatGridGeneratedDelegate OnCombatGridGenerated;
+
 private:
 	/******************************************************************
 	 * Grid Generation 
@@ -92,7 +96,11 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
+
+	//DANGEROUS FUNCTION, ALLOWS DIRECT MODIFICATION OF TILES IN GRID. ONLY USE IN EXTREME CASES
+	TMap<FIntPoint, FTileData>* GetGridTilesRef() { return &GridTiles; }
 private:
+	UPROPERTY(VisibleAnywhere)
 	TMap<FIntPoint, FTileData> GridTiles;
 	TMap<ETileState, TArray<FIntPoint>> TileStateToIndices;
 

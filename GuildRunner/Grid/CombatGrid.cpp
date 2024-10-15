@@ -90,6 +90,8 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 				if(GridShape == Hexagon) ++y;
 			}
 		}
+
+		OnCombatGridGenerated.Broadcast();
 	}
 }
 
@@ -192,7 +194,7 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 		if(HitGridObject)
 		{
 			HitTileType = HitGridObject->GetTileType();
-			UE_LOG(LogTemp, Display, TEXT("Hit grid modifier %s at location %s"), *UEnum::GetValueAsString(HitTileType), *Location.ToString());
+			//UE_LOG(LogTemp, Display, TEXT("Hit grid modifier %s at location %s"), *UEnum::GetValueAsString(HitTileType), *Location.ToString());
 			if(HitGridObject->GetUseTileHeight())
 			{
 				bIsHeightFound = true;

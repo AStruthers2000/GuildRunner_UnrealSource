@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GridActions/GridAction.h"
+#include "GuildRunner/Combat/CombatSystem.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -27,6 +28,12 @@ void APlayerGridActions::BeginPlay()
 	if(!GridReference)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[APlayerGridActions::BeginPlay]:\tNo grid found for player actions"));
+	}
+
+	CombatSystemReference = Cast<ACombatSystem>(UGameplayStatics::GetActorOfClass(this, ACombatSystem::StaticClass()));
+	if(!CombatSystemReference)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[APlayerGridActions::BeginPlay]:\tNo combat system found for player actions"));
 	}
 
 	if(const auto PC = Cast<APlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
