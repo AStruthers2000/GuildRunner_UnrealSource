@@ -25,6 +25,8 @@ void ACombatSystem::AddUnitInCombat(ACombatGridUnit* Unit, const FIntPoint Index
 {
 	UnitsInCombat.Add(Unit);
 	SetUnitIndexOnGrid(Unit, Index);
+	Unit->SetGrid(ManagedGrid);
+	Unit->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::ACombatSystem::OnUnitReachedNewTile);
 }
 
 void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit)
@@ -68,6 +70,8 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& I
 				ManagedGrid->GetGridTilesRef()->Find(Index)->UnitOnTile = Unit;
 			}
 		}
+
+		OnGridUnitIndexChanged.Broadcast(Unit);
 	}
 
 	//move tile to new location
@@ -114,5 +118,12 @@ void ACombatSystem::OnTileDataUpdated(FIntPoint Index)
 			}
 		}
 	}
+}
+
+void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, FIntPoint Index)
+{
+	//Could also use this function to add some verification that the unit actually reached the new tile
+	//or to check if the unit stepped on some traps, etc.
+	SetUnitIndexOnGrid(Unit, Index);
 }
 

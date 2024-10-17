@@ -10,12 +10,20 @@
 class ACombatGridUnit;
 class ACombatGrid;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatSystemGridUnitIndexChanged, ACombatGridUnit*, Unit);
+
 UCLASS()
 class GUILDRUNNER_API ACombatSystem : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+public:
+	/******************************************************************
+	 * Grid Callbacks
+	 ******************************************************************/
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatSystemGridUnitIndexChanged OnGridUnitIndexChanged;
+	
 	ACombatSystem();
 
 	virtual void BeginPlay() override;
@@ -39,5 +47,8 @@ private:
 
 	UFUNCTION()
 	void OnTileDataUpdated(FIntPoint Index);
+
+	UFUNCTION()
+	void OnUnitReachedNewTile(ACombatGridUnit* Unit, FIntPoint Index);
 
 };

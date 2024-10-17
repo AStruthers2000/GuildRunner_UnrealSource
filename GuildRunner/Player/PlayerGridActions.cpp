@@ -51,6 +51,7 @@ void APlayerGridActions::BeginPlay()
 
 	GridReference->OnCombatGridGenerated.AddDynamic(this, &APlayerGridActions::OnGridGenerated);
 	GridReference->OnTileDataUpdated.AddDynamic(this, &APlayerGridActions::OnTileDataUpdated);
+	CombatSystemReference->OnGridUnitIndexChanged.AddDynamic(this, &APlayerGridActions::OnUnitGridIndexChanged);
 
 	SetSelectedActions(PlayerAction_SelectTile, PlayerAction_SelectTile);
 }
@@ -228,6 +229,14 @@ void APlayerGridActions::OnTileDataUpdated(FIntPoint Index)
 	if(Index == SelectedTile)
 	{
 		OnGridGenerated();
+	}
+}
+
+void APlayerGridActions::OnUnitGridIndexChanged(ACombatGridUnit* Unit)
+{
+	if(Unit == SelectedUnit)
+	{
+		TrySelectTileAndUnit(Unit->GetIndexOnGrid(), true);
 	}
 }
 

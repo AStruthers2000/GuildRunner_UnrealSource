@@ -94,10 +94,10 @@ bool UCombatGridPathfinding::IsInputDataValid() const
 	if(!GridReference->IsTileWalkable(StartIndex)) return false;
 	if(!GridReference->IsTileWalkable(TargetIndex)) return false;
 
-	//if the target tile isn't a tile that this unit can walk on, we don't need pathfinding
+	//if the target tile isn't a tile that this unit can walk on, or a tile with a unit on it, we don't need pathfinding
 	const auto TargetTile = GridReference->GetGridTiles().Find(TargetIndex);
 	if(!TargetTile || !ValidWalkableTiles.Contains(TargetTile->Type)) return false;
-	
+	if(!TargetTile || TargetTile->UnitOnTile) return false;	
 
 	return true;
 }
@@ -427,6 +427,9 @@ bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, c
 	//if(!UGridShapeUtilities::IsTileTypeWalkable(NeighborData->Type)) return false;
 	//if the neighbor isn't a valid walkable tile type (some units can walk on FlyingUnitsOnly, etc.)
 	if(!ValidTileTypes.Contains(NeighborData->Type)) return false;
+
+	//if there is a unit on this tile, we don't count it as valid
+	if(NeighborData->UnitOnTile) return false;
 
 	const float MyHeight = InputTile.Transform.GetLocation().Z;
 	const float NeighborHeight = NeighborData->Transform.GetLocation().Z;

@@ -46,6 +46,8 @@ public:
 	void SetHoveredTile(const FIntPoint& NewIndex) { HoveredTile = NewIndex; }
 	FIntPoint GetSelectedTile() const { return SelectedTile; }
 	void SetSelectedTile(const FIntPoint& NewIndex) { SelectedTile = NewIndex; }
+	ACombatGridUnit* GetHoveredUnit() const { return HoveredUnit; }
+	ACombatGridUnit* GetSelectedUnit() const { return SelectedUnit; }
 	ACombatGrid* GetCombatGridReference() const { return GridReference; }
 	ACombatSystem* GetCombatSystemReference() const { return CombatSystemReference; }
 
@@ -93,4 +95,7 @@ private:
 
 	UFUNCTION()
 	void OnTileDataUpdated(FIntPoint Index);
+
+	UFUNCTION()
+	void OnUnitGridIndexChanged(ACombatGridUnit* Unit);
 };

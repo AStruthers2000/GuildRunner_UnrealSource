@@ -3,6 +3,7 @@
 #include "Engine/DataTable.h"
 #include "GuildRunner/Units/EUnitType.h"
 #include "FCombatGridUnitData_Assets.h"
+#include "FCombatGridUnitData_Stats.h"
 #include "FCombatGridUnitData.generated.h"
 
 
@@ -16,5 +17,8 @@ struct FCombatGridUnitData : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatGridUnitData_Assets Assets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FCombatGridUnitData_Stats Stats;
 };
 
