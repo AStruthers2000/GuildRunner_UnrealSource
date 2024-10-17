@@ -32,6 +32,7 @@ void ADebugTileText::BeginPlay()
 	
 	//bind to grid events
 	GridRef->OnTileDataUpdated.AddDynamic(this, &ADebugTileText::UpdateTextOnTile);
+	GridRef->OnTileStateUpdated.AddDynamic(this, &ADebugTileText::UpdateStateOnTile);
 	GridRef->OnCombatGridDestroyed.AddDynamic(this, &ADebugTileText::ClearAllTextActors);
 	
 	//bind to pathfinding events

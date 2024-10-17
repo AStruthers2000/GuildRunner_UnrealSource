@@ -13,6 +13,7 @@ void AAction_SelectTile::ExecuteGridAction(FIntPoint TileIndex)
 	Super::ExecuteGridAction(TileIndex);
 	if(!PlayerGridActions) return;
 
+	/*
 	//if the indices are different, select this tile
 	if(PlayerGridActions->GetSelectedTile() != TileIndex)
 	{
@@ -25,6 +26,8 @@ void AAction_SelectTile::ExecuteGridAction(FIntPoint TileIndex)
 		PlayerGridActions->GetCombatGridReference()->RemoveStateFromTile(PlayerGridActions->GetSelectedTile(), Selected);
 		PlayerGridActions->SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 	}
+	*/
+	PlayerGridActions->TrySelectTileAndUnit(TileIndex);
 }
 
 void AAction_SelectTile::EndPlay(const EEndPlayReason::Type EndPlayReason)

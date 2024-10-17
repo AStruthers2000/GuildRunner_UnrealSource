@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "PlayerGridActions.generated.h"
 
+class ACombatGridUnit;
 class ACombatSystem;
 class AGridAction;
 struct FInputActionValue;
@@ -50,6 +52,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetSelectedActions(TSubclassOf<AGridAction> SelectedAction, TSubclassOf<AGridAction> DeselectedAction);
 
+	void TrySelectTileAndUnit(const FIntPoint& Index, const bool bForceUpdate = false);
+
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FPlayerGridActionDelegate OnSelectedActionsChanged;
 	
@@ -69,12 +73,24 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AGridAction* RightClickAction;
 	
-	FIntPoint HoveredTile = {};
-	FIntPoint SelectedTile = {};
+	FIntPoint HoveredTile = FPATHFINDINGDATA_DEFAULT_INDEX;
+	FIntPoint SelectedTile = FPATHFINDINGDATA_DEFAULT_INDEX;
+
+	UPROPERTY()
+	ACombatGridUnit* HoveredUnit = nullptr;
+	UPROPERTY()
+	ACombatGridUnit* SelectedUnit = nullptr;
 
 	void UpdateTileUnderCursor();
 	void SelectTile(const FInputActionValue& Value);
 	void DeselectTile(const FInputActionValue& Value);
+	ACombatGridUnit* GetUnitUnderCursor();
 
 	AGridAction* TrySpawnGridAction(AGridAction*& ActionObject, TSubclassOf<AGridAction> ActionClass);
+
+	UFUNCTION()
+	void OnGridGenerated();
+
+	UFUNCTION()
+	void OnTileDataUpdated(FIntPoint Index);
 };

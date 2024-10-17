@@ -23,12 +23,24 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 			SpawnParameters.bDeferConstruction = true;
 
 			RemoveUnitOnTile(TileIndex);
-			if(auto* SpawnedCombatUnit = GetWorld()->SpawnActor<ACombatGridUnit>(ACombatGridUnit::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters))
+			try
 			{
-				SpawnedCombatUnit->SetUnitType(UnitType);
-				SpawnedCombatUnit->DispatchBeginPlay();
-				PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedCombatUnit, TileIndex);
+				if(UnitType != NoUnitSelected)
+				{
+					const auto ClassToSpawn = UnitTypeMapping[UnitType];
+					if(auto* SpawnedCombatUnit = GetWorld()->SpawnActor<ACombatGridUnit>(ClassToSpawn, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters))
+					{
+						SpawnedCombatUnit->SetUnitType(UnitType);
+						SpawnedCombatUnit->DispatchBeginPlay();
+						PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedCombatUnit, TileIndex);
+					}
+				}
 			}
+			catch (...)
+			{
+				UE_LOG(LogTemp, Error, TEXT("[AAction_AddRemoveUnitFromGrid::ExecuteGridAction]:\tNo mapping exists for adding unit of type %s"), *UEnum::GetValueAsString(UnitType));
+			}
+			
 		}
 	}
 	else

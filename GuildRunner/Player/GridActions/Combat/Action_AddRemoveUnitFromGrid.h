@@ -8,6 +8,7 @@
 #include "GuildRunner/Units/EUnitType.h"
 #include "Action_AddRemoveUnitFromGrid.generated.h"
 
+class ACombatGridUnit;
 class APlayerGridActions;
 
 UCLASS()
@@ -25,6 +26,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<EUnitType> UnitType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TMap<TEnumAsByte<EUnitType>, TSubclassOf<ACombatGridUnit>> UnitTypeMapping;
 
 	void RemoveUnitOnTile(const FIntPoint& TileIndex) const;
 };

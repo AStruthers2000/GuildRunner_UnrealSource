@@ -8,6 +8,7 @@
 #include "GridActions/GridAction.h"
 #include "GuildRunner/Combat/CombatSystem.h"
 #include "GuildRunner/Grid/CombatGrid.h"
+#include "GuildRunner/Units/CombatGridUnit.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -48,6 +49,9 @@ void APlayerGridActions::BeginPlay()
 		}
 	}
 
+	GridReference->OnCombatGridGenerated.AddDynamic(this, &APlayerGridActions::OnGridGenerated);
+	GridReference->OnTileDataUpdated.AddDynamic(this, &APlayerGridActions::OnTileDataUpdated);
+
 	SetSelectedActions(PlayerAction_SelectTile, PlayerAction_SelectTile);
 }
 
@@ -65,16 +69,82 @@ void APlayerGridActions::SetSelectedActions(TSubclassOf<AGridAction> SelectedAct
 	OnSelectedActionsChanged.Broadcast(LeftClickAction, RightClickAction);
 }
 
+void APlayerGridActions::TrySelectTileAndUnit(const FIntPoint& Index, const bool bForceUpdate)
+{
+	//first, try and select the given tile
+	//if the indices are different, select this tile
+	if(GetSelectedTile() != Index || bForceUpdate)
+	{
+		GetCombatGridReference()->RemoveStateFromTile(GetSelectedTile(), Selected);
+		SetSelectedTile(Index);
+		GetCombatGridReference()->AddStateToTile(GetSelectedTile(), Selected);
+	}
+	else
+	{
+		GetCombatGridReference()->RemoveStateFromTile(GetSelectedTile(), Selected);
+		SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
+	}
+
+	//deselect currently selected unit
+	if(SelectedUnit)
+	{
+		SelectedUnit->SetIsSelected(false);
+	}
+	const auto* Tile = GridReference->GetGridTiles().Find(SelectedTile);
+	if(Tile)
+	{
+		auto* NewUnit = Tile->UnitOnTile ? Tile->UnitOnTile : ((SelectedUnit && SelectedUnit->GetIndexOnGrid() == SelectedTile) ? SelectedUnit : nullptr);
+		//if the unit is the same as selected, do nothing
+		if(SelectedUnit != NewUnit || bForceUpdate)
+		{
+			//update the new unit and if it exists, set it to selected
+			SelectedUnit = NewUnit;
+			if(SelectedUnit)
+			{
+				SelectedUnit->SetIsSelected(true);
+			}
+		}
+	}
+}
+
 void APlayerGridActions::UpdateTileUnderCursor()
 {
 	if(!GridReference) return;
-	if(HoveredTile != GridReference->GetTileIndexUnderCursor(0))
+
+	auto* PossiblyHoveredUnit = GetUnitUnderCursor();
+	if(PossiblyHoveredUnit != HoveredUnit)
+	{
+		//set the old unit as no longer hovered
+		if(HoveredUnit)
+		{
+			HoveredUnit->SetIsHovered(false);
+		}
+
+		//update unit reference and set current unit to hovered
+		HoveredUnit = PossiblyHoveredUnit;
+		if(HoveredUnit)
+		{
+			HoveredUnit->SetIsHovered(true);
+		}
+	}
+
+	FIntPoint NewTileIndex;
+	if(HoveredUnit)
+	{
+		NewTileIndex = HoveredUnit->GetIndexOnGrid();
+	}
+	else
+	{
+		NewTileIndex = GridReference->GetTileIndexUnderCursor(0);
+	}
+	
+	if(HoveredTile != NewTileIndex)
 	{
 		//first remove the state from the old hovered tile
 		GridReference->RemoveStateFromTile(HoveredTile, Hovered);
 
 		//now update the new hovered tile
-		HoveredTile = GridReference->GetTileIndexUnderCursor(0);
+		HoveredTile = NewTileIndex;
 		GridReference->AddStateToTile(HoveredTile, Hovered);
 	}
 }
@@ -95,6 +165,24 @@ void APlayerGridActions::DeselectTile(const FInputActionValue& Value)
 
 	UpdateTileUnderCursor();
 	if(RightClickAction) RightClickAction->ExecuteGridAction(HoveredTile);
+}
+
+ACombatGridUnit* APlayerGridActions::GetUnitUnderCursor()
+{
+	const auto* PC = UGameplayStatics::GetPlayerController(this, 0);
+	FHitResult OutHit;
+	if(PC->GetHitResultUnderCursor(ECC_GameTraceChannel3, false, OutHit))
+	{
+		if(auto* GridUnit = Cast<ACombatGridUnit>(OutHit.GetActor())) return GridUnit;
+		return nullptr;
+	}
+
+	const auto Index = GridReference->GetTileIndexUnderCursor(0);
+	if(const auto* Tile = GridReference->GetGridTiles().Find(Index))
+	{
+		return Tile->UnitOnTile;
+	}
+	return nullptr;
 }
 
 AGridAction* APlayerGridActions::TrySpawnGridAction(AGridAction*& ActionObject, TSubclassOf<AGridAction> ActionClass)
@@ -121,6 +209,26 @@ AGridAction* APlayerGridActions::TrySpawnGridAction(AGridAction*& ActionObject, 
 		}
 	}
 	return nullptr;
+}
+
+void APlayerGridActions::OnGridGenerated()
+{
+	if(GridReference->IsIndexValid(SelectedTile))
+	{
+		TrySelectTileAndUnit(SelectedTile, true);
+	}
+	else
+	{
+		TrySelectTileAndUnit(FPATHFINDINGDATA_DEFAULT_INDEX, true);
+	}
+}
+
+void APlayerGridActions::OnTileDataUpdated(FIntPoint Index)
+{
+	if(Index == SelectedTile)
+	{
+		OnGridGenerated();
+	}
 }
 
 

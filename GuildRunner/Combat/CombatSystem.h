@@ -30,7 +30,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ACombatGrid* ManagedGrid;
 
-	void SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index);
+	void SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate = false);
 
 	TArray<ACombatGridUnit*> UnitsInCombat;
 

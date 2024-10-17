@@ -268,7 +268,7 @@ void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
 			States.Add(Data->Index);
 			TileStateToIndices.Add(State, States);
 			CombatGridVisual->UpdateTileVisual(*Data);
-			OnTileDataUpdated.Broadcast(Index);
+			OnTileStateUpdated.Broadcast(Index);
 		}
 	}
 }
@@ -285,7 +285,7 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 			States.Remove(Index);
 			TileStateToIndices.Add(State, States);
 			CombatGridVisual->UpdateTileVisual(*Data);
-			OnTileDataUpdated.Broadcast(Index);
+			OnTileStateUpdated.Broadcast(Index);
 		}
 	}
 }

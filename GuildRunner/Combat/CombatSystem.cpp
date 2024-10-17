@@ -38,12 +38,12 @@ void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit)
 	}
 }
 
-void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index)
+void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate)
 {
 	if(!Unit) return;
 
 	//if the unit's index is already the index we want, we don't want to move the unit
-	if(Unit->GetIndexOnGrid() != Index)
+	if(Unit->GetIndexOnGrid() != Index || bForceUpdate)
 	{
 		//remove the unit from the previous tile
 		auto* PreviousTile = ManagedGrid->GetGridTiles().Find(Unit->GetIndexOnGrid());
@@ -84,7 +84,7 @@ void ACombatSystem::OnGridGenerated()
 		//does the tile still exist/is tile still walkable
 		if(ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
 		{
-			SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid());
+			SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid(), true);
 		}
 		else
 		{

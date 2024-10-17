@@ -14,6 +14,7 @@ class UCombatGridVisualizer;
 class UDataTable;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileUpdateDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileStateUpdateDelegate, FIntPoint, Index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridDestroyedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridGeneratedDelegate);
 
@@ -51,6 +52,9 @@ public:
 	 ******************************************************************/
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatGridTileUpdateDelegate OnTileDataUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatGridTileStateUpdateDelegate OnTileStateUpdated;
 	
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatGridDestroyedDelegate OnCombatGridDestroyed;

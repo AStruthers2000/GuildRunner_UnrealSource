@@ -18,6 +18,17 @@ class GUILDRUNNER_API ACombatGridUnit : public AActor
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
 	TEnumAsByte<EUnitType> UnitType = Warrior;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	FLinearColor SelectedColor = FLinearColor(1, 1, 1, 1);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	float HoveredColorMultiplier = 2.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	float SelectedColorMultiplier = 2.5f;
+
+	
 	
 public:	
 	ACombatGridUnit();
@@ -30,6 +41,22 @@ public:
 
 	void SetUnitType(const TEnumAsByte<EUnitType> Type) { UnitType = Type; }
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateVisualIfHoveredOrSelected() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsHovered(const bool bHovered)
+	{
+		bIsHovered = bHovered;
+		UpdateVisualIfHoveredOrSelected();
+	}
+	UFUNCTION(BlueprintCallable)
+	void SetIsSelected(const bool bSelected)
+	{
+		bIsSelected = bSelected;
+		UpdateVisualIfHoveredOrSelected();
+	}
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -39,6 +66,17 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	FIntPoint IndexOnGrid = FPATHFINDINGDATA_DEFAULT_INDEX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bIsHovered;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bIsSelected;
+
+	
+
+	
+	
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
