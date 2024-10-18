@@ -12,24 +12,28 @@
 class UCombatGridMeshInstance;
 class ACombatGrid;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GUILDRUNNER_API UCombatGridVisualizer : public USceneComponent
 {
 	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridVisualization", meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridVisualization",
+		meta = (AllowPrivateAccess = "true"))
 	UCombatGridMeshInstance* VisualGridMeshInstance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridVisualization", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridVisualization",
+		meta = (AllowPrivateAccess = "true"))
 	UCombatGridMeshInstance* TacticalGridMeshInstance;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|GridVisualization", meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|GridVisualization",
+		meta = (AllowPrivateAccess = "true"))
 	float GridOffsetFromGround = 2.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridVisualization", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridVisualization",
+		meta = (AllowPrivateAccess = "true"))
 	bool bIsTacticalGridShowing;
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UCombatGridVisualizer();
 

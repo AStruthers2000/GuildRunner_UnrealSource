@@ -15,15 +15,17 @@ class ACombatGrid;
 #define COMBAT_GRID_DIAG_COST 14
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, FIntPoint, Index);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, TArray<FIntPoint>, FullPath);
 
 UCLASS()
 class GUILDRUNNER_API UCombatGridPathfinding : public UActorComponent
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	UCombatGridPathfinding();
 	virtual void BeginPlay() override;
@@ -39,7 +41,7 @@ public:
 	 ******************************************************************/
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatPathfindingDataUpdateDelegate OnPathfindingDataUpdated;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatPathfindingDestroyedDelegate OnPathfindingDataCleared;
 
@@ -55,7 +57,8 @@ private:
 	 ******************************************************************/
 public:
 	UFUNCTION(BlueprintCallable)
-	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs);
+	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals,
+	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs);
 
 	UFUNCTION(BlueprintCallable)
 	void ClearGeneratedPathfindingData();
@@ -94,8 +97,10 @@ private:
 	TArray<FPathfindingData> GetNeighborIndicesForSquare(const FIntPoint& Index, bool bIncludeDiagonals) const;
 	TArray<FPathfindingData> GetNeighborIndicesForHexagon(const FIntPoint& Index) const;
 	TArray<FPathfindingData> GetNeighborIndicesForTriangle(const FIntPoint& Index, bool bIncludeDiagonals) const;
-	TArray<FPathfindingData> CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
-	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const;
+	TArray<FPathfindingData>
+	CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
+	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor,
+	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const;
 	static int32 CalculateCostToEnterTile(const FTileData& InputTile);
 	TArray<TEnumAsByte<ETileType>> ValidWalkableTiles = {Normal, DoubleCost, TripleCost, FlyingUnitsOnly};
 
@@ -105,6 +110,7 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	void FindPathWithDelay();
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float DelayBetweenIterations;

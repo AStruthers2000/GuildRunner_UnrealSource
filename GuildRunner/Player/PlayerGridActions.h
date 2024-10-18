@@ -15,7 +15,8 @@ class UInputMappingContext;
 class UInputAction;
 class ACombatGrid;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPlayerGridActionDelegate, AGridAction*, LeftClickAction, AGridAction*, RightClickAction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPlayerGridActionDelegate, AGridAction*, LeftClickAction, AGridAction*,
+                                             RightClickAction);
 
 UCLASS()
 class GUILDRUNNER_API APlayerGridActions : public AActor
@@ -33,12 +34,11 @@ class GUILDRUNNER_API APlayerGridActions : public AActor
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AGridAction> PlayerAction_SelectTile;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AGridAction> PlayerAction_DeselectTile;
-	
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	APlayerGridActions();
 
@@ -58,7 +58,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FPlayerGridActionDelegate OnSelectedActionsChanged;
-	
 
 protected:
 	virtual void BeginPlay() override;
@@ -69,12 +68,12 @@ private:
 	ACombatGrid* GridReference;
 	UPROPERTY()
 	ACombatSystem* CombatSystemReference;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AGridAction* LeftClickAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AGridAction* RightClickAction;
-	
+
 	FIntPoint HoveredTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 	FIntPoint SelectedTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 

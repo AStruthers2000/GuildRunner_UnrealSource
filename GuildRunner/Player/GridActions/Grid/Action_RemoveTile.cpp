@@ -13,7 +13,10 @@ AAction_RemoveTile::AAction_RemoveTile()
 void AAction_RemoveTile::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
-	if(!PlayerGridActions) return;
+	if (!PlayerGridActions)
+	{
+		return;
+	}
 
 	PlayerGridActions->GetCombatGridReference()->RemoveGridTile(TileIndex);
 }

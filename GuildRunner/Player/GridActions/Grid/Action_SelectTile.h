@@ -13,13 +13,10 @@ UCLASS()
 class GUILDRUNNER_API AAction_SelectTile : public AGridAction
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AAction_SelectTile();
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	
-	
 };

@@ -33,7 +33,7 @@ void UCombatGridVisualizer::InitializeGridVisual(ACombatGrid* Grid)
 		true,
 		ECollisionEnabled::QueryOnly
 	);
-	
+
 	//Center grid in world
 	SetWorldLocation(FVector(0, 0, 0));
 	SetOffsetFromGround(GridOffsetFromGround);
@@ -50,11 +50,15 @@ void UCombatGridVisualizer::SetOffsetFromGround(const float Offset)
 
 void UCombatGridVisualizer::DestroyGridVisual()
 {
-	if(VisualGridMeshInstance)
+	if (VisualGridMeshInstance)
+	{
 		VisualGridMeshInstance->ClearInstances();
+	}
 
-	if(TacticalGridMeshInstance)
+	if (TacticalGridMeshInstance)
+	{
 		TacticalGridMeshInstance->ClearInstances();
+	}
 
 	SetGridLowestZ();
 }
@@ -62,7 +66,7 @@ void UCombatGridVisualizer::DestroyGridVisual()
 void UCombatGridVisualizer::UpdateTileVisual(const FTileData Data)
 {
 	VisualGridMeshInstance->RemoveInstance(Data.Index);
-	if(UGridShapeUtilities::IsTileTypeWalkable(Data.Type))
+	if (UGridShapeUtilities::IsTileTypeWalkable(Data.Type))
 	{
 		VisualGridMeshInstance->AddInstance(Data.Index, Data.Type, Data.Transform, Data.States);
 	}
@@ -83,10 +87,10 @@ void UCombatGridVisualizer::SetIsTacticalGridShowing(const bool bIsTactical)
 		NonTacticalActor->SetActorHiddenInGame(bIsTacticalGridShowing);
 	}
 
-	if(bIsTactical && bNeedToRegenerateTacticalOnNextEnable)
+	if (bIsTactical && bNeedToRegenerateTacticalOnNextEnable)
 	{
 		bNeedToRegenerateTacticalOnNextEnable = false;
-		for(const auto& Pair : GridReference->GetGridTiles())
+		for (const auto& Pair : GridReference->GetGridTiles())
 		{
 			UpdateTileVisual_Tactical(Pair.Value);
 		}
@@ -101,21 +105,25 @@ void UCombatGridVisualizer::SetGridLowestZ(const float Z)
 
 void UCombatGridVisualizer::UpdateTileVisual_Tactical(const FTileData& Data)
 {
-	if(Data.Transform.GetLocation().Z < GridLowestZ)
+	if (Data.Transform.GetLocation().Z < GridLowestZ)
+	{
 		SetGridLowestZ(Data.Transform.GetLocation().Z);
+	}
 
-	if(bIsTacticalGridShowing)
+	if (bIsTacticalGridShowing)
 	{
 		TacticalGridMeshInstance->RemoveInstance(Data.Index);
-		if(Data.Type != NoTile)
+		if (Data.Type != NoTile)
 		{
 			FTransform TacticalTileTransform;
 			TacticalTileTransform.SetLocation(Data.Transform.GetLocation());
 			TacticalTileTransform.SetRotation(Data.Transform.GetRotation());
-		
+
 			const float ShapeMeshHeight = GridReference->GetCurrentShapeData()->MeshSize.Z;
-			const float ModifiedZScale = ((Data.Transform.GetLocation().Z - GridLowestZ) + ShapeMeshHeight) / ShapeMeshHeight;
-			TacticalTileTransform.SetScale3D(FVector(Data.Transform.GetScale3D().X, Data.Transform.GetScale3D().Y, ModifiedZScale));
+			const float ModifiedZScale = ((Data.Transform.GetLocation().Z - GridLowestZ) + ShapeMeshHeight) /
+				ShapeMeshHeight;
+			TacticalTileTransform.SetScale3D(FVector(Data.Transform.GetScale3D().X, Data.Transform.GetScale3D().Y,
+			                                         ModifiedZScale));
 			TacticalGridMeshInstance->AddInstance(Data.Index, Data.Type, TacticalTileTransform, Data.States);
 		}
 	}
@@ -124,4 +132,3 @@ void UCombatGridVisualizer::UpdateTileVisual_Tactical(const FTileData& Data)
 		bNeedToRegenerateTacticalOnNextEnable = true;
 	}
 }
-

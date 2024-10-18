@@ -15,15 +15,15 @@ UCLASS()
 class GUILDRUNNER_API AAction_AddRemoveUnitFromGrid : public AGridAction
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AAction_AddRemoveUnitFromGrid();
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
-	
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIsAddingUnit = true;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<EUnitType> UnitType;
 

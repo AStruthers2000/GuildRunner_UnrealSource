@@ -13,5 +13,4 @@ UCLASS()
 class GUILDRUNNER_API AGuildRunnerGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
 };

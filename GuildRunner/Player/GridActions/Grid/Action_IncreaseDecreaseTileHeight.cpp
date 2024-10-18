@@ -13,9 +13,12 @@ AAction_IncreaseDecreaseTileHeight::AAction_IncreaseDecreaseTileHeight()
 void AAction_IncreaseDecreaseTileHeight::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
-	if(!PlayerGridActions) return;
+	if (!PlayerGridActions)
+	{
+		return;
+	}
 
-	if(PlayerGridActions->GetCombatGridReference()->IsIndexValid(TileIndex))
+	if (PlayerGridActions->GetCombatGridReference()->IsIndexValid(TileIndex))
 	{
 		auto Data = *PlayerGridActions->GetCombatGridReference()->GetGridTiles().Find(TileIndex);
 		const auto LocationOffset = FVector(0, 0, PlayerGridActions->GetCombatGridReference()->GetGridTileSize().Z);

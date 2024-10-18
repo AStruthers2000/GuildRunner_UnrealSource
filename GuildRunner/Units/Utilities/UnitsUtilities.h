@@ -26,5 +26,4 @@ public:
 
 private:
 	static const UDataTable* FindGridDataMappingTable();
-	
 };

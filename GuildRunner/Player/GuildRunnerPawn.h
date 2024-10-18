@@ -23,7 +23,7 @@ class GUILDRUNNER_API AGuildRunnerPawn : public APawn
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* CombatCameraMappingContext;
 
@@ -54,7 +54,7 @@ class GUILDRUNNER_API AGuildRunnerPawn : public APawn
 	//Camera zoom interpolation speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float ZoomInterpolationSpeed = 10.f;
-	
+
 	//Speed of camera movement input response
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraMoveSpeed = 40.f;
@@ -79,7 +79,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

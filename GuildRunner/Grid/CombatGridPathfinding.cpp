@@ -11,10 +11,9 @@
 // Sets default values
 UCombatGridPathfinding::UCombatGridPathfinding()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
 	PrimaryComponentTick.bCanEverTick = false;
-
 }
 
 void UCombatGridPathfinding::BeginPlay()
@@ -27,10 +26,12 @@ void UCombatGridPathfinding::BeginPlay()
  * A* Pathfinding
  ******************************************************************/
 
-TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs)
+TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals,
+                                                   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay,
+                                                   float MaxMs)
 {
 	ClearGeneratedPathfindingData();
-	
+
 	StartIndex = StartTile;
 	TargetIndex = TargetTile;
 	bIncludeDiagonalsInPathfinding = bUsingDiagonals;
@@ -40,20 +41,23 @@ TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoin
 	MaxMsPerFrame = MaxMs;
 
 	//if input data is invalid, we don't want to do pathfinding
-	if(!IsInputDataValid())
+	if (!IsInputDataValid())
 	{
 		OnPathfindingCompleted.Broadcast({});
 		return {};
 	}
 
 	//now do A* pathfinding
-	DiscoverTile({StartIndex, FPATHFINDINGDATA_DEFAULT_TILE_COST, 0, GetMinimumCostBetweenTwoTiles(StartIndex, TargetIndex, bUsingDiagonals)});
-	
-	if(DelayBetweenIterations <= 0.0f)
+	DiscoverTile({
+		StartIndex, FPATHFINDINGDATA_DEFAULT_TILE_COST, 0,
+		GetMinimumCostBetweenTwoTiles(StartIndex, TargetIndex, bUsingDiagonals)
+	});
+
+	if (DelayBetweenIterations <= 0.0f)
 	{
-		while(DiscoveredTileIndices.Num() > 0)
+		while (DiscoveredTileIndices.Num() > 0)
 		{
-			if(AnalyzeNextDiscoveredTile())
+			if (AnalyzeNextDiscoveredTile())
 			{
 				const auto Path = GeneratePath();
 				OnPathfindingCompleted.Broadcast(Path);
@@ -75,7 +79,8 @@ TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoin
 
 void UCombatGridPathfinding::ClearGeneratedPathfindingData()
 {
-	UE_LOG(LogTemp, Display, TEXT("[UCombatGridPathfinding::ClearGeneratedPathfindingData]: Clearing pathfinding data"));
+	UE_LOG(LogTemp, Display,
+	       TEXT("[UCombatGridPathfinding::ClearGeneratedPathfindingData]: Clearing pathfinding data"));
 	PathfindingData.Empty();
 	DiscoveredTileSortingCosts.Empty();
 	DiscoveredTileIndices.Empty();
@@ -88,16 +93,31 @@ void UCombatGridPathfinding::ClearGeneratedPathfindingData()
 bool UCombatGridPathfinding::IsInputDataValid() const
 {
 	//if we are pathfinding to the tile we clicked on, we don't need to do pathfinding
-	if(StartIndex == TargetIndex) return false;
-	
+	if (StartIndex == TargetIndex)
+	{
+		return false;
+	}
+
 	//if the start tile or the end tile aren't actually walkable tiles, we don't need to do pathfinding
-	if(!GridReference->IsTileWalkable(StartIndex)) return false;
-	if(!GridReference->IsTileWalkable(TargetIndex)) return false;
+	if (!GridReference->IsTileWalkable(StartIndex))
+	{
+		return false;
+	}
+	if (!GridReference->IsTileWalkable(TargetIndex))
+	{
+		return false;
+	}
 
 	//if the target tile isn't a tile that this unit can walk on, or a tile with a unit on it, we don't need pathfinding
 	const auto TargetTile = GridReference->GetGridTiles().Find(TargetIndex);
-	if(!TargetTile || !ValidWalkableTiles.Contains(TargetTile->Type)) return false;
-	if(!TargetTile || TargetTile->UnitOnTile) return false;	
+	if (!TargetTile || !ValidWalkableTiles.Contains(TargetTile->Type))
+	{
+		return false;
+	}
+	if (!TargetTile || TargetTile->UnitOnTile)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -110,14 +130,15 @@ void UCombatGridPathfinding::DiscoverTile(const FPathfindingData& TilePathData)
 	OnPathfindingDataUpdated.Broadcast(TilePathData.Index);
 }
 
-int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, const bool bUsingDiagonals) const
+int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2,
+                                                          const bool bUsingDiagonals) const
 {
 	const int32 XComp = (Index1 - Index2).X;
 	const int32 YComp = (Index1 - Index2).Y;
-	switch(GridReference->GetGridShape())
+	switch (GridReference->GetGridShape())
 	{
 	case Square:
-		if(bUsingDiagonals)
+		if (bUsingDiagonals)
 		{
 			return FMath::Max(FMath::Abs(XComp), FMath::Abs(YComp));
 		}
@@ -129,7 +150,7 @@ int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index
 		return FMath::Abs(XComp) + FMath::Max((FMath::Abs(YComp) - FMath::Abs(XComp)) / 2, 0);
 	case Triangle:
 		{
-			if(bUsingDiagonals)
+			if (bUsingDiagonals)
 			{
 				return FMath::Abs(XComp) + FMath::Abs(YComp);
 			}
@@ -140,12 +161,12 @@ int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index
 			const bool SecondComp = Index2.X < Index1.X ? AbsX - 1 <= AbsY : AbsX <= AbsY;
 			const bool FacingUp = Index1.X % 2 == Index1.Y % 2;
 			const bool PartOfNormalZone = FacingUp ? FirstComp : SecondComp;
-			if(PartOfNormalZone)
+			if (PartOfNormalZone)
 			{
 				return AbsX + AbsY;
 			}
-			
-			if(FacingUp)
+
+			if (FacingUp)
 			{
 				return AbsX * 2;
 			}
@@ -167,10 +188,10 @@ bool UCombatGridPathfinding::AnalyzeNextDiscoveredTile()
 	CurrentNeighbors = GetValidTileNeighbors(CurrentDiscoveredTile.Index, bIncludeDiagonalsInPathfinding);
 
 	//check if any of the current neighbors are the target tile
-	while(CurrentNeighbors.Num() > 0)
+	while (CurrentNeighbors.Num() > 0)
 	{
 		//we found the target tile
-		if(DiscoverNextNeighbor())
+		if (DiscoverNextNeighbor())
 		{
 			return true;
 		}
@@ -186,7 +207,7 @@ TArray<FIntPoint> UCombatGridPathfinding::GeneratePath() const
 	TArray<FIntPoint> InvertedPath;
 
 	//loop until we backtrack to start index
-	while(Current != StartIndex)
+	while (Current != StartIndex)
 	{
 		InvertedPath.Add(Current);
 		const auto Next = PathfindingData.FindRef(Current);
@@ -194,7 +215,7 @@ TArray<FIntPoint> UCombatGridPathfinding::GeneratePath() const
 	}
 
 	TArray<FIntPoint> InvertedInvertedPath;
-	
+
 	for (int i = InvertedPath.Num() - 1; i >= 0; --i)
 	{
 		InvertedInvertedPath.Add(InvertedPath[i]);
@@ -219,7 +240,7 @@ FPathfindingData UCombatGridPathfinding::PullCheapestTileOutOfDiscoveredList()
 
 	//order inside analyzed tile indices list doesn't matter
 	AnalyzedTileIndices.Add(TileIndex);
-	
+
 	return PathfindingData.FindRef(TileIndex);
 }
 
@@ -229,18 +250,24 @@ bool UCombatGridPathfinding::DiscoverNextNeighbor()
 	CurrentNeighbors.RemoveAt(0);
 
 	//if we have already analyzed this index, we don't want to reanalyze this tile
-	if(AnalyzedTileIndices.Contains(CurrentNeighbor.Index)) return false;
+	if (AnalyzedTileIndices.Contains(CurrentNeighbor.Index))
+	{
+		return false;
+	}
 
 	const int32 CostFromStart = CurrentDiscoveredTile.CostFromStart + CurrentNeighbor.CostToEnterTile;
 	const int32 IndexInDiscovered = DiscoveredTileIndices.Find(CurrentNeighbor.Index);
 
-	if(IndexInDiscovered != INDEX_NONE)
+	if (IndexInDiscovered != INDEX_NONE)
 	{
 		CurrentNeighbor = PathfindingData.FindRef(CurrentNeighbor.Index);
 
 		//this neighbor isn't good enough to continue pathfinding with this neighbor
-		if(CostFromStart >= CurrentNeighbor.CostFromStart) return false;
-		
+		if (CostFromStart >= CurrentNeighbor.CostFromStart)
+		{
+			return false;
+		}
+
 		DiscoveredTileSortingCosts.RemoveAt(IndexInDiscovered);
 		DiscoveredTileIndices.RemoveAt(IndexInDiscovered);
 	}
@@ -248,7 +275,8 @@ bool UCombatGridPathfinding::DiscoverNextNeighbor()
 	NewTileToDiscover.Index = CurrentNeighbor.Index;
 	NewTileToDiscover.CostToEnterTile = CurrentNeighbor.CostToEnterTile;
 	NewTileToDiscover.CostFromStart = CostFromStart;
-	NewTileToDiscover.MinimumCostToTarget = GetMinimumCostBetweenTwoTiles(CurrentNeighbor.Index, TargetIndex, bIncludeDiagonalsInPathfinding);
+	NewTileToDiscover.MinimumCostToTarget = GetMinimumCostBetweenTwoTiles(
+		CurrentNeighbor.Index, TargetIndex, bIncludeDiagonalsInPathfinding);
 	NewTileToDiscover.PreviousTile = CurrentDiscoveredTile.Index;
 	DiscoverTile(NewTileToDiscover);
 
@@ -261,7 +289,7 @@ void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(const FPathfindingDat
 
 	//if there are no elements in our discovered list, or if our cost is larger than the highest cost in the sorted
 	//DiscoveredTiles list, then it is already sorted so we just add the cost
-	if(DiscoveredTileSortingCosts.Num() == 0 || SortingCost >= DiscoveredTileSortingCosts.Last())
+	if (DiscoveredTileSortingCosts.Num() == 0 || SortingCost >= DiscoveredTileSortingCosts.Last())
 	{
 		DiscoveredTileSortingCosts.Add(SortingCost);
 		DiscoveredTileIndices.Add(TileData.Index);
@@ -270,10 +298,13 @@ void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(const FPathfindingDat
 	{
 		//we have to sort an array. what is this, CS 301???
 		//using insert sort with early return
-		for(int i = 0; i < DiscoveredTileSortingCosts.Num(); ++i)
+		for (int i = 0; i < DiscoveredTileSortingCosts.Num(); ++i)
 		{
 			const int Cost = DiscoveredTileSortingCosts[i];
-			if(Cost < SortingCost) continue;
+			if (Cost < SortingCost)
+			{
+				continue;
+			}
 
 			DiscoveredTileSortingCosts.Insert(SortingCost, i);
 			DiscoveredTileIndices.Insert(TileData.Index, i);
@@ -288,7 +319,7 @@ bool UCombatGridPathfinding::IsDiagonal(const FIntPoint& Index1, const FIntPoint
 	//non-diagonal neighbors, then Index2 is not diagonal from Index1
 	const auto NonDiagonals = GetValidTileNeighbors(Index1, false);
 	TArray<FIntPoint> NonDiagonalIndices;
-	for(const auto& Data : NonDiagonals)
+	for (const auto& Data : NonDiagonals)
 	{
 		NonDiagonalIndices.Add(Data.Index);
 	}
@@ -308,7 +339,8 @@ int32 UCombatGridPathfinding::GetTileSortingCost(const FPathfindingData& Tile) c
  * Neighbor Checking
  ******************************************************************/
 
-TArray<FPathfindingData> UCombatGridPathfinding::GetValidTileNeighbors(const FIntPoint Index, const bool bIncludeDiagonals) const
+TArray<FPathfindingData> UCombatGridPathfinding::GetValidTileNeighbors(const FIntPoint Index,
+                                                                       const bool bIncludeDiagonals) const
 {
 	switch (GridReference->GetGridShape())
 	{
@@ -319,25 +351,27 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetValidTileNeighbors(const FIn
 	case Triangle:
 		return GetNeighborIndicesForTriangle(Index, bIncludeDiagonals);
 	case NoDefinedShape: //intentional fallthrough
-		default: return {};
+	default: return {};
 	}
 }
 
-TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForSquare(const FIntPoint& Index, const bool bIncludeDiagonals) const
+TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForSquare(
+	const FIntPoint& Index, const bool bIncludeDiagonals) const
 {
 	// Define the possible directions for neighbors
 	TArray<FIntPoint> AttemptedIndices = {
-		{0, 1},  // Up
-		{1, 0},  // Right
+		{0, 1}, // Up
+		{1, 0}, // Right
 		{0, -1}, // Down
-		{-1, 0}  // Left
+		{-1, 0} // Left
 	};
-	
+
 	// Include diagonal directions if specified
-	if (bIncludeDiagonals) {
-		AttemptedIndices.Add({1, 1});   // Top-right
-		AttemptedIndices.Add({1, -1});  // Bottom-right
-		AttemptedIndices.Add({-1, 1});  // Top-left
+	if (bIncludeDiagonals)
+	{
+		AttemptedIndices.Add({1, 1}); // Top-right
+		AttemptedIndices.Add({1, -1}); // Bottom-right
+		AttemptedIndices.Add({-1, 1}); // Top-left
 		AttemptedIndices.Add({-1, -1}); // Bottom-left
 	}
 
@@ -359,7 +393,8 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForHexagon(co
 	return CheckPotentialNeighbors(Index, AttemptedIndices);
 }
 
-TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForTriangle(const FIntPoint& Index, const bool bIncludeDiagonals) const
+TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForTriangle(
+	const FIntPoint& Index, const bool bIncludeDiagonals) const
 {
 	// Define the possible directions for neighbors
 	TArray<FIntPoint> AttemptedIndices = {
@@ -368,10 +403,10 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForTriangle(c
 	};
 
 	//if both indices are even or both are odd, the triangle is facing up
-	if(Index.X % 2 == Index.Y % 2)
+	if (Index.X % 2 == Index.Y % 2)
 	{
 		AttemptedIndices.Add({-1, 0});
-		if(bIncludeDiagonals)
+		if (bIncludeDiagonals)
 		{
 			AttemptedIndices.Add({1, 0});
 			AttemptedIndices.Add({-1, 2});
@@ -381,7 +416,7 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForTriangle(c
 	else
 	{
 		AttemptedIndices.Add({1, 0});
-		if(bIncludeDiagonals)
+		if (bIncludeDiagonals)
 		{
 			AttemptedIndices.Add({-1, 0});
 			AttemptedIndices.Add({1, 2});
@@ -392,16 +427,17 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForTriangle(c
 	return CheckPotentialNeighbors(Index, AttemptedIndices);
 }
 
-TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const
+TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(
+	const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const
 {
-
 	const auto InputTile = GridReference->GetGridTiles().FindRef(Index);
-	
+
 	// Store valid neighboring tiles
 	TArray<FPathfindingData> Neighbors;
-    
+
 	// Check all potential neighbors
-	for (const auto& Direction : AttemptedNeighbors) {
+	for (const auto& Direction : AttemptedNeighbors)
+	{
 		const FIntPoint Neighbor = {Index.X + Direction.X, Index.Y + Direction.Y};
 		if (ValidateNeighborIndex(InputTile, Neighbor, ValidWalkableTiles))
 		{
@@ -416,20 +452,33 @@ TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(const F
 	return Neighbors;
 }
 
-bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor, const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const
+bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor,
+                                                   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const
 {
-	if(!GridReference->IsIndexValid(Neighbor)) return false;
+	if (!GridReference->IsIndexValid(Neighbor))
+	{
+		return false;
+	}
 
 	const auto* NeighborData = GridReference->GetGridTiles().Find(Neighbor);
-	if(!NeighborData) return false;
-	
-	
+	if (!NeighborData)
+	{
+		return false;
+	}
+
+
 	//if(!UGridShapeUtilities::IsTileTypeWalkable(NeighborData->Type)) return false;
 	//if the neighbor isn't a valid walkable tile type (some units can walk on FlyingUnitsOnly, etc.)
-	if(!ValidTileTypes.Contains(NeighborData->Type)) return false;
+	if (!ValidTileTypes.Contains(NeighborData->Type))
+	{
+		return false;
+	}
 
 	//if there is a unit on this tile, we don't count it as valid
-	if(NeighborData->UnitOnTile) return false;
+	if (NeighborData->UnitOnTile)
+	{
+		return false;
+	}
 
 	const float MyHeight = InputTile.Transform.GetLocation().Z;
 	const float NeighborHeight = NeighborData->Transform.GetLocation().Z;
@@ -439,7 +488,10 @@ bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, c
 	//	InputTile.Index.X, InputTile.Index.Y, Neighbor.X, Neighbor.Y, MyHeight, NeighborHeight, HeightDifference, GridReference->GetGridTileSize().Z);
 
 	//if there is more than 1 tile's height separating the tile we clicked on and the current neighbor, it is invalid
-	if(HeightDifference > GridReference->GetGridTileSize().Z) return false;
+	if (HeightDifference > GridReference->GetGridTileSize().Z)
+	{
+		return false;
+	}
 
 	//if none of the checks happened, then this tile must be valid
 	return true;
@@ -471,7 +523,7 @@ int32 UCombatGridPathfinding::CalculateCostToEnterTile(const FTileData& InputTil
 void UCombatGridPathfinding::FindPathWithDelay()
 {
 	//while(DiscoveredTileIndices.Num() > 0)
-	if(bCanCallDelayedPathfinding)
+	if (bCanCallDelayedPathfinding)
 	{
 		LoopStartTime = FDateTime::Now();
 		PerformDelayedPathfinding();
@@ -480,9 +532,9 @@ void UCombatGridPathfinding::FindPathWithDelay()
 
 void UCombatGridPathfinding::PerformDelayedPathfinding()
 {
-	if(DiscoveredTileIndices.Num() > 0)
+	if (DiscoveredTileIndices.Num() > 0)
 	{
-		if(AnalyzeNextDiscoveredTile())
+		if (AnalyzeNextDiscoveredTile())
 		{
 			const auto Path = GeneratePath();
 			OnPathfindingCompleted.Broadcast(Path);
@@ -490,9 +542,9 @@ void UCombatGridPathfinding::PerformDelayedPathfinding()
 		}
 		else
 		{
-			if(MaxMsPerFrame > 0.f)
+			if (MaxMsPerFrame > 0.f)
 			{
-				if((FDateTime::Now() - LoopStartTime).GetTotalMilliseconds() < MaxMsPerFrame)
+				if ((FDateTime::Now() - LoopStartTime).GetTotalMilliseconds() < MaxMsPerFrame)
 				{
 					PerformDelayedPathfinding();
 					return;
@@ -513,4 +565,3 @@ void UCombatGridPathfinding::PerformDelayedPathfinding()
 		OnPathfindingCompleted.Broadcast({});
 	}
 }
-

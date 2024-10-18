@@ -14,15 +14,18 @@ class UCombatGridVisualizer;
 class UDataTable;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileUpdateDelegate, FIntPoint, Index);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileStateUpdateDelegate, FIntPoint, Index);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridDestroyedDelegate);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridGeneratedDelegate);
 
 UCLASS()
 class GUILDRUNNER_API ACombatGrid : public AActor
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	UCombatGridVisualizer* CombatGridVisual;
 
@@ -43,8 +46,8 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	bool bRefreshGrid;
-	
-public:	
+
+public:
 	ACombatGrid();
 
 	/******************************************************************
@@ -55,7 +58,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatGridTileStateUpdateDelegate OnTileStateUpdated;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatGridDestroyedDelegate OnCombatGridDestroyed;
 
@@ -67,18 +70,24 @@ private:
 	 * Grid Generation 
 	 ******************************************************************/
 	UFUNCTION(BlueprintCallable)
-	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions, TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
+	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions,
+	               TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
+
 public:
 	void AddGridTile(const FTileData& TileData);
 	void RemoveGridTile(const FIntPoint& Index);
 	void DestroyGrid();
+
 private:
 	void FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_BottomLeft) const;
+
 public:
 	ETileType TraceForGround(const FVector& Location, FVector& Out_HitLocation) const;
+
 private:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetGridBottomLeftCornerLocation() const { return GridBottomLeftCornerLocation; }
+
 	FVector GridBottomLeftCornerLocation;
 
 	/******************************************************************
@@ -97,12 +106,13 @@ public:
 
 	TArray<FIntPoint> GetAllTilesWithState(ETileState State);
 	void ClearStateFromTiles(ETileState State);
-	
+
 	UFUNCTION(BlueprintCallable)
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
 
 	//DANGEROUS FUNCTION, ALLOWS DIRECT MODIFICATION OF TILES IN GRID. ONLY USE IN EXTREME CASES
 	TMap<FIntPoint, FTileData>* GetGridTilesRef() { return &GridTiles; }
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	TMap<FIntPoint, FTileData> GridTiles;
@@ -111,7 +121,7 @@ private:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	
+
 	/******************************************************************
 	 * Mouse Cursor
 	 ******************************************************************/
@@ -119,6 +129,7 @@ private:
 	FVector GetCursorLocationOnGrid(int32 PlayerIndex);
 	UFUNCTION(BlueprintCallable)
 	FIntPoint GetTileIndexFromWorldLocation(FVector Location);
+
 public:
 	UFUNCTION(BlueprintCallable)
 	FIntPoint GetTileIndexUnderCursor(int32 PlayerIndex);
@@ -129,7 +140,4 @@ public:
 public:
 	UCombatGridPathfinding* GetGridPathfinding() const { return CombatGridPathfinding; }
 	bool IsTileWalkable(const FIntPoint& Index);
-	
-
-	
 };

@@ -12,35 +12,40 @@ AAction_AddRemoveUnitFromGrid::AAction_AddRemoveUnitFromGrid()
 void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
-	if(!PlayerGridActions) return;
-
-	if(bIsAddingUnit)
+	if (!PlayerGridActions)
 	{
-		if(PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex))
+		return;
+	}
+
+	if (bIsAddingUnit)
+	{
+		if (PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex))
 		{
 			FActorSpawnParameters SpawnParameters;
 			SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			SpawnParameters.bDeferConstruction = true;
 
 			RemoveUnitOnTile(TileIndex);
-			try
+
+			if (UnitType != NoUnitSelected && UnitTypeMapping.Contains(UnitType))
 			{
-				if(UnitType != NoUnitSelected)
+				const auto ClassToSpawn = UnitTypeMapping[UnitType];
+				if (auto* SpawnedCombatUnit = GetWorld()->SpawnActor<ACombatGridUnit>(
+					ClassToSpawn, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters))
 				{
-					const auto ClassToSpawn = UnitTypeMapping[UnitType];
-					if(auto* SpawnedCombatUnit = GetWorld()->SpawnActor<ACombatGridUnit>(ClassToSpawn, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters))
-					{
-						SpawnedCombatUnit->SetUnitType(UnitType);
-						SpawnedCombatUnit->DispatchBeginPlay();
-						PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedCombatUnit, TileIndex);
-					}
+					SpawnedCombatUnit->SetUnitType(UnitType);
+					SpawnedCombatUnit->DispatchBeginPlay();
+					PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedCombatUnit, TileIndex);
 				}
 			}
-			catch (...)
+
+			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("[AAction_AddRemoveUnitFromGrid::ExecuteGridAction]:\tNo mapping exists for adding unit of type %s"), *UEnum::GetValueAsString(UnitType));
+				UE_LOG(LogTemp, Error,
+				       TEXT(
+					       "[AAction_AddRemoveUnitFromGrid::ExecuteGridAction]:\tNo mapping exists for adding unit of type %s"
+				       ), *UEnum::GetValueAsString(UnitType));
 			}
-			
 		}
 	}
 	else
@@ -52,9 +57,8 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 void AAction_AddRemoveUnitFromGrid::RemoveUnitOnTile(const FIntPoint& TileIndex) const
 {
 	const auto* ClickedTile = PlayerGridActions->GetCombatGridReference()->GetGridTiles().Find(TileIndex);
-	if(ClickedTile && ClickedTile->UnitOnTile)
+	if (ClickedTile && ClickedTile->UnitOnTile)
 	{
 		PlayerGridActions->GetCombatSystemReference()->RemoveUnitInCombat(ClickedTile->UnitOnTile);
 	}
 }
-

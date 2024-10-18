@@ -11,7 +11,10 @@ AAction_SelectTile::AAction_SelectTile()
 void AAction_SelectTile::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
-	if(!PlayerGridActions) return;
+	if (!PlayerGridActions)
+	{
+		return;
+	}
 
 	/*
 	//if the indices are different, select this tile

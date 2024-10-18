@@ -14,12 +14,17 @@ AAction_FindPathToTarget::AAction_FindPathToTarget()
 void AAction_FindPathToTarget::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
-	if(!PlayerGridActions) return;
+	if (!PlayerGridActions)
+	{
+		return;
+	}
 
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
-	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(this, &AAction_FindPathToTarget::OnPathfindingCompleted);
-	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(PlayerGridActions->GetSelectedTile(), TileIndex, bIncludeDiagonals, GetValidWalkingTiles(), DelayBetweenIterations, MaxMsPerFrame);
-	
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(
+		this, &AAction_FindPathToTarget::OnPathfindingCompleted);
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
+		PlayerGridActions->GetSelectedTile(), TileIndex, bIncludeDiagonals, GetValidWalkingTiles(),
+		DelayBetweenIterations, MaxMsPerFrame);
 }
 
 void AAction_FindPathToTarget::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -31,17 +36,19 @@ void AAction_FindPathToTarget::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AAction_FindPathToTarget::OnPathfindingCompleted(TArray<FIntPoint> Path)
 {
-	for(auto& TileInPath : Path)
+	for (auto& TileInPath : Path)
 	{
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsInPath);
 	}
 }
 
-TArray<TEnumAsByte<ETileType>>  AAction_FindPathToTarget::GetValidWalkingTiles() const
+TArray<TEnumAsByte<ETileType>> AAction_FindPathToTarget::GetValidWalkingTiles() const
 {
 	TArray<TEnumAsByte<ETileType>> ValidTiles = {Normal, DoubleCost, TripleCost};
-	if(bFlyingUnit)
+	if (bFlyingUnit)
+	{
 		ValidTiles.Add(FlyingUnitsOnly);
+	}
 
 	return ValidTiles;
 }

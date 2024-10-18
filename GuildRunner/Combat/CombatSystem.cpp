@@ -34,7 +34,7 @@ void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit)
 	UnitsInCombat.Remove(Unit);
 	SetUnitIndexOnGrid(Unit, FPATHFINDINGDATA_DEFAULT_INDEX);
 
-	if(bDestroyUnit)
+	if (bDestroyUnit)
 	{
 		Unit->Destroy();
 	}
@@ -42,14 +42,17 @@ void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit)
 
 void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate)
 {
-	if(!Unit) return;
+	if (!Unit)
+	{
+		return;
+	}
 
 	//if the unit's index is already the index we want, we don't want to move the unit
-	if(Unit->GetIndexOnGrid() != Index || bForceUpdate)
+	if (Unit->GetIndexOnGrid() != Index || bForceUpdate)
 	{
 		//remove the unit from the previous tile
 		auto* PreviousTile = ManagedGrid->GetGridTiles().Find(Unit->GetIndexOnGrid());
-		if(PreviousTile && PreviousTile->UnitOnTile == Unit)
+		if (PreviousTile && PreviousTile->UnitOnTile == Unit)
 		{
 			//DANGEROUS MODIFICATION OF TILES ON GRID DIRECTLY!!!! THIS IS PROBABLY BAD TO DO
 			//BUT WHEN COPYING THE TILE AND THEN UPDATING IT IN THE KEY, THE STATES ARRAY GETS
@@ -59,10 +62,10 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& I
 
 		//add unit to the new tile
 		Unit->SetIndexOnGrid(Index);
-		if(Index != FIntPoint(FPATHFINDINGDATA_DEFAULT_INDEX))
+		if (Index != FIntPoint(FPATHFINDINGDATA_DEFAULT_INDEX))
 		{
 			auto* NextTile = ManagedGrid->GetGridTiles().Find(Index);
-			if(NextTile)
+			if (NextTile)
 			{
 				//DANGEROUS MODIFICATION OF TILES ON GRID DIRECTLY!!!! THIS IS PROBABLY BAD TO DO
 				//BUT WHEN COPYING THE TILE AND THEN UPDATING IT IN THE KEY, THE STATES ARRAY GETS
@@ -83,10 +86,10 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& I
 void ACombatSystem::OnGridGenerated()
 {
 	auto Temp_UnitsInCombat = UnitsInCombat;
-	for(const auto& Unit : Temp_UnitsInCombat)
+	for (const auto& Unit : Temp_UnitsInCombat)
 	{
 		//does the tile still exist/is tile still walkable
-		if(ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
+		if (ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
 		{
 			SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid(), true);
 		}
@@ -99,14 +102,13 @@ void ACombatSystem::OnGridGenerated()
 
 void ACombatSystem::OnTileDataUpdated(FIntPoint Index)
 {
-
 	auto Temp_UnitsInCombat = UnitsInCombat;
-	for(const auto& Unit : Temp_UnitsInCombat)
+	for (const auto& Unit : Temp_UnitsInCombat)
 	{
-		if(Unit->GetIndexOnGrid() == Index)
+		if (Unit->GetIndexOnGrid() == Index)
 		{
 			//does the tile still exist/is tile still walkable
-			if(ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
+			if (ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
 			{
 				SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid());
 				break;
@@ -126,4 +128,3 @@ void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, FIntPoint Index)
 	//or to check if the unit stepped on some traps, etc.
 	SetUnitIndexOnGrid(Unit, Index);
 }
-

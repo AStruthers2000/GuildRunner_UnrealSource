@@ -15,15 +15,22 @@ AAction_MoveUnitOnGrid::AAction_MoveUnitOnGrid()
 void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
-	if(!PlayerGridActions) return;
+	if (!PlayerGridActions)
+	{
+		return;
+	}
 
 	CurrentUnit = PlayerGridActions->GetSelectedUnit();
-	if(!CurrentUnit) return;
+	if (!CurrentUnit)
+	{
+		return;
+	}
 
 	CurrentUnit->OnCombatUnitFinishedWalking.AddDynamic(this, &AAction_MoveUnitOnGrid::OnUnitFinishedWalking);
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
-	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(this, &AAction_MoveUnitOnGrid::OnPathfindingCompleted);	
-	
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(
+		this, &AAction_MoveUnitOnGrid::OnPathfindingCompleted);
+
 	const auto bMoveDiagonal = CurrentUnit->GetUnitData().Stats.bCanMoveDiagonally;
 	const auto ValidTileTypes = CurrentUnit->GetUnitData().Stats.ValidTileTypes;
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
@@ -45,10 +52,16 @@ void AAction_MoveUnitOnGrid::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AAction_MoveUnitOnGrid::OnPathfindingCompleted(TArray<FIntPoint> Path)
 {
-	if(!CurrentUnit) return;
-	if(CurrentUnit != PlayerGridActions->GetSelectedUnit()) return;
-	
-	for(auto& TileInPath : Path)
+	if (!CurrentUnit)
+	{
+		return;
+	}
+	if (CurrentUnit != PlayerGridActions->GetSelectedUnit())
+	{
+		return;
+	}
+
+	for (auto& TileInPath : Path)
 	{
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsInPath);
 	}
@@ -58,7 +71,7 @@ void AAction_MoveUnitOnGrid::OnPathfindingCompleted(TArray<FIntPoint> Path)
 
 void AAction_MoveUnitOnGrid::OnUnitFinishedWalking(ACombatGridUnit* Unit)
 {
-	if(Unit == CurrentUnit)
+	if (Unit == CurrentUnit)
 	{
 		PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
 	}

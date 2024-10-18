@@ -7,7 +7,7 @@ USTRUCT(BlueprintType)
 struct FCombatGridUnitData_Assets
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USkeletalMesh* Mesh;
 
@@ -17,4 +17,3 @@ struct FCombatGridUnitData_Assets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* Icon;
 };
-

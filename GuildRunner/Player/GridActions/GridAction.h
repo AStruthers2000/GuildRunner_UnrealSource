@@ -12,8 +12,8 @@ UCLASS()
 class GUILDRUNNER_API AGridAction : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AGridAction();
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

@@ -16,21 +16,21 @@ UCLASS()
 class GUILDRUNNER_API ACombatSystem : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:
 	/******************************************************************
 	 * Grid Callbacks
 	 ******************************************************************/
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatSystemGridUnitIndexChanged OnGridUnitIndexChanged;
-	
+
 	ACombatSystem();
 
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
 	void AddUnitInCombat(ACombatGridUnit* Unit, FIntPoint Index);
-	
+
 	UFUNCTION(BlueprintCallable)
 	void RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit = true);
 
@@ -50,5 +50,4 @@ private:
 
 	UFUNCTION()
 	void OnUnitReachedNewTile(ACombatGridUnit* Unit, FIntPoint Index);
-
 };

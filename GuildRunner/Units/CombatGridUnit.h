@@ -12,6 +12,7 @@
 #include "CombatGridUnit.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitReachedNewTile, ACombatGridUnit*, Unit, FIntPoint, Index);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatUnitFinishedWalking, ACombatGridUnit*, Unit);
 
 class ACombatGrid;
@@ -24,7 +25,8 @@ class GUILDRUNNER_API ACombatGridUnit : public AActor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* SkeletalMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units",
+		meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
 	TEnumAsByte<EUnitType> UnitType = Warrior;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
@@ -45,8 +47,6 @@ class GUILDRUNNER_API ACombatGridUnit : public AActor
 	UPROPERTY(EditAnywhere, Category = "GuildRunner|Units|Timeline", meta = (AllowPrivateAccess = "true"))
 	UCurveVector* UnitMovementCurve;
 
-	
-	
 public:
 	/******************************************************************
 	 * Grid Callbacks
@@ -57,7 +57,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatUnitFinishedWalking OnCombatUnitFinishedWalking;
 
-	
+
 	ACombatGridUnit();
 
 	UFUNCTION(BlueprintCallable)
@@ -77,6 +77,7 @@ public:
 		bIsHovered = bHovered;
 		UpdateVisualIfHoveredOrSelected();
 	}
+
 	UFUNCTION(BlueprintCallable)
 	void SetIsSelected(const bool bSelected)
 	{
@@ -91,6 +92,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	const ACombatGrid* GetGrid() const { return GridReference; }
+
 	void SetGrid(ACombatGrid* Grid) { GridReference = Grid; }
 	void SetMoveDurationPerTile(const float NewDuration) { MoveDurationPerTile = NewDuration; }
 
@@ -135,11 +137,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float MoveDurationPerTile = 1.f;
-	
+
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-
-	
 };

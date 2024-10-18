@@ -10,8 +10,8 @@ UCLASS()
 class GUILDRUNNER_API ALevelLoader : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ALevelLoader();
 
@@ -19,7 +19,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -27,7 +27,7 @@ public:
 	void LoadLevel(FName LevelName, bool bForceLoad = false);
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Level Loading", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Level Loading",
+		meta = (AllowPrivateAccess = "true"))
 	FName LoadedLevel = "";
 };
-

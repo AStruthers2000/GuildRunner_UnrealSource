@@ -15,5 +15,4 @@ class GUILDRUNNER_API AGuildRunnerPlayerController : public APlayerController
 	GENERATED_BODY()
 
 	virtual void BeginPlay() override;
-	
 };

@@ -15,4 +15,3 @@ struct FCombatGridUnitData_Stats
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanMoveDiagonally = false;
 };
-

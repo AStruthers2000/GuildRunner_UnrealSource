@@ -18,7 +18,9 @@ UCombatGridMeshInstance::UCombatGridMeshInstance()
 	InstancedMesh->NumCustomDataFloats = 4;
 }
 
-void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const TEnumAsByte<ETileType> Type, const FTransform& Transform, const TArray<TEnumAsByte<ETileState>>& TileStates)
+void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const TEnumAsByte<ETileType> Type,
+                                          const FTransform& Transform,
+                                          const TArray<TEnumAsByte<ETileState>>& TileStates)
 {
 	//removes the index first before adding it, effectively updating the transform
 	RemoveInstance(Index);
@@ -35,7 +37,7 @@ void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const TEnumAsB
 
 void UCombatGridMeshInstance::RemoveInstance(const FIntPoint& Index)
 {
-	if(InstanceIndices.Contains(Index))
+	if (InstanceIndices.Contains(Index))
 	{
 		InstancedMesh->RemoveInstance(InstanceIndices.Find(Index));
 		InstanceIndices.Remove(Index);
@@ -48,7 +50,9 @@ void UCombatGridMeshInstance::ClearInstances()
 	InstanceIndices.Empty();
 }
 
-void UCombatGridMeshInstance::InitializeGridMeshInstance(UStaticMesh* NewMesh, UMaterialInstance* NewMaterial, const bool bColorFromTileType, const ECollisionEnabled::Type CollisionType)
+void UCombatGridMeshInstance::InitializeGridMeshInstance(UStaticMesh* NewMesh, UMaterialInstance* NewMaterial,
+                                                         const bool bColorFromTileType,
+                                                         const ECollisionEnabled::Type CollisionType)
 {
 	InstancedMesh->SetStaticMesh(NewMesh);
 	InstancedMesh->SetMaterial(0, NewMaterial);
@@ -63,11 +67,13 @@ void UCombatGridMeshInstance::AdjustInstanceMeshOffsetFromGround(const float Off
 	InstancedMesh->SetWorldLocation(FVector(Location.X, Location.Y, Offset));
 }
 
-FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<TEnumAsByte<ETileState>>& States, const TEnumAsByte<ETileType>& TileType, float& IsFilledValue)
+FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<TEnumAsByte<ETileState>>& States,
+                                                                   const TEnumAsByte<ETileType>& TileType,
+                                                                   float& IsFilledValue)
 {
 	IsFilledValue = 0.f;
 
-	if(bIsColorBasedOnTileType)
+	if (bIsColorBasedOnTileType)
 	{
 		IsFilledValue = 1.f;
 		switch (TileType)
@@ -89,12 +95,15 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<
 	}
 	else
 	{
-		if(States.IsEmpty()) return FLinearColor(0, 0, 0, 1);
+		if (States.IsEmpty())
+		{
+			return FLinearColor(0, 0, 0, 1);
+		}
 
 		//this list is the priority of our colors
 		for (const auto& State : {Selected, Hovered, IsNeighbor, IsInPath, IsDiscovered, IsAnalyzed})
 		{
-			if(States.Contains(State))
+			if (States.Contains(State))
 			{
 				IsFilledValue = 1.f;
 				switch (State)
@@ -126,4 +135,3 @@ void UCombatGridMeshInstance::HideInstancedStaticMeshInGame(const bool bHidden) 
 {
 	InstancedMesh->SetHiddenInGame(bHidden);
 }
-

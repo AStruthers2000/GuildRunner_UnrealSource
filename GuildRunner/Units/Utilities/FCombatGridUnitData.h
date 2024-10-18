@@ -11,7 +11,7 @@ USTRUCT(BlueprintType)
 struct FCombatGridUnitData : public FTableRowBase
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte<EUnitType> UnitType = NoUnitSelected;
 
@@ -21,4 +21,3 @@ struct FCombatGridUnitData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatGridUnitData_Stats Stats;
 };
-

@@ -19,7 +19,7 @@ ACombatGridUnit::ACombatGridUnit()
 	SkeletalMesh->SetupAttachment(RootComponent);
 	SkeletalMesh->SetWorldRotation(FRotator(0, -90, 0));
 	SkeletalMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Block);
-	
+
 	ConfigureUnitOnConstruct();
 	//SkeletalMesh->SetSkeletalMesh()
 }
@@ -27,10 +27,13 @@ ACombatGridUnit::ACombatGridUnit()
 void ACombatGridUnit::ConfigureUnitOnConstruct()
 {
 	const auto* Data = UUnitsUtilities::GetDefaultUnitDataFromUnitType(UnitType);
-	if(!Data || Data->UnitType == NoUnitSelected) return;
+	if (!Data || Data->UnitType == NoUnitSelected)
+	{
+		return;
+	}
 
 	UnitData = *Data;
-	
+
 	SkeletalMesh->SetSkeletalMesh(UnitData.Assets.Mesh);
 	SkeletalMesh->SetAnimInstanceClass(UnitData.Assets.Animation.LoadSynchronous());
 	SkeletalMesh->InitAnim(true);
@@ -66,7 +69,7 @@ void ACombatGridUnit::Tick(float DeltaTime)
 
 void ACombatGridUnit::UnitFollowPath(const TArray<FIntPoint>& TilesInPath)
 {
-	if(TilesInPath.Num() > 0)
+	if (TilesInPath.Num() > 0)
 	{
 		CurrentPathToFollow = TilesInPath;
 		BeginWalkingForward();
@@ -79,16 +82,18 @@ void ACombatGridUnit::BeginWalkingForward()
 	SetUnitAnimationIndex(Walk);
 	PreviousTileTransform = GetActorTransform();
 	NextTileTransform = GridReference->GetGridTiles().Find(CurrentPathToFollow[0])->Transform;
-	const auto LookAtRotation = UKismetMathLibrary::FindLookAtRotation(PreviousTileTransform.GetLocation(), NextTileTransform.GetLocation());
+	const auto LookAtRotation = UKismetMathLibrary::FindLookAtRotation(PreviousTileTransform.GetLocation(),
+	                                                                   NextTileTransform.GetLocation());
 	NextTileTransform.SetRotation(FRotator(0, LookAtRotation.Yaw, 0).Quaternion());
-	UnitMovementTimeline.SetPlayRate(UKismetMathLibrary::SafeDivide(UnitMovementTimeline.GetTimelineLength(), MoveDurationPerTile));
+	UnitMovementTimeline.SetPlayRate(
+		UKismetMathLibrary::SafeDivide(UnitMovementTimeline.GetTimelineLength(), MoveDurationPerTile));
 
 	UnitMovementTimeline.PlayFromStart();
 }
 
 void ACombatGridUnit::ContinueToFollowPath()
 {
-	if(CurrentPathToFollow.Num() > 0)
+	if (CurrentPathToFollow.Num() > 0)
 	{
 		BeginWalkingForward();
 	}
@@ -105,11 +110,14 @@ void ACombatGridUnit::TimelineUpdate(FVector Value)
 	const float LocationAlpha = Value.X;
 	const float RotationAlpha = Value.Y;
 	const float JumpAlpha = Value.Z;
-	
-	const FVector NewLocation = FMath::Lerp(PreviousTileTransform.GetLocation(), NextTileTransform.GetLocation(), LocationAlpha);
-	const FRotator NewRotation = UKismetMathLibrary::RLerp(PreviousTileTransform.Rotator(), NextTileTransform.Rotator(), RotationAlpha, true);
 
-	const bool bTilesOnSameHeight = FMath::IsNearlyEqual(PreviousTileTransform.GetLocation().Z, NextTileTransform.GetLocation().Z);
+	const FVector NewLocation = FMath::Lerp(PreviousTileTransform.GetLocation(), NextTileTransform.GetLocation(),
+	                                        LocationAlpha);
+	const FRotator NewRotation = UKismetMathLibrary::RLerp(PreviousTileTransform.Rotator(), NextTileTransform.Rotator(),
+	                                                       RotationAlpha, true);
+
+	const bool bTilesOnSameHeight = FMath::IsNearlyEqual(PreviousTileTransform.GetLocation().Z,
+	                                                     NextTileTransform.GetLocation().Z);
 	const FVector JumpOffset = FVector(0, 0, bTilesOnSameHeight ? 0.f : JumpAlpha);
 	SetActorLocationAndRotation(NewLocation + JumpOffset, NewRotation);
 }
@@ -122,11 +130,10 @@ void ACombatGridUnit::OnTimelineFinished()
 }
 
 
-
-
 void ACombatGridUnit::UpdateVisualIfHoveredOrSelected() const
 {
-	const FLinearColor NewColor = (bIsSelected ? SelectedColor : FLinearColor(1, 1, 1, 1)) * (bIsHovered ? HoveredColorMultiplier : 1) * (bIsSelected ? SelectedColorMultiplier : 1);
+	const FLinearColor NewColor = (bIsSelected ? SelectedColor : FLinearColor(1, 1, 1, 1)) * (
+		bIsHovered ? HoveredColorMultiplier : 1) * (bIsSelected ? SelectedColorMultiplier : 1);
 	const FVector ColorAsVector = FVector(NewColor.R, NewColor.G, NewColor.B);
 	//UE_LOG(LogTemp, Display, TEXT("ColorMultiply value for unit %s: %s"), *GetActorNameOrLabel(), *ColorAsVector.ToString());
 	SkeletalMesh->SetVectorParameterValueOnMaterials("ColorMultiply", ColorAsVector);
@@ -134,7 +141,7 @@ void ACombatGridUnit::UpdateVisualIfHoveredOrSelected() const
 
 void ACombatGridUnit::SetUnitAnimationIndex(TEnumAsByte<EUnitAnimationState> AnimState)
 {
-	if(SkeletalMesh->GetAnimInstance()->Implements<UUnitAnimationInterface>())
+	if (SkeletalMesh->GetAnimInstance()->Implements<UUnitAnimationInterface>())
 	{
 		IUnitAnimationInterface::Execute_SetUnitAnimationState(SkeletalMesh->GetAnimInstance(), AnimState);
 		//UE_LOG(LogTemp, Display, TEXT("Setting actor %s to animation state %s"), *GetActorNameOrLabel(), *UEnum::GetValueAsString(AnimState));
@@ -151,4 +158,3 @@ void ACombatGridUnit::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 	ConfigureUnitOnConstruct();
 }
 #endif
-

@@ -17,10 +17,10 @@ USTRUCT(BlueprintType)
 struct FGridShapeData : public FTableRowBase
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector MeshSize = FVector(100, 100, 100);
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMesh* Mesh;
 
@@ -36,4 +36,3 @@ struct FGridShapeData : public FTableRowBase
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	//UMaterialInstance* FlatFilledMaterial;
 };
-

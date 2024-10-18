@@ -24,7 +24,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	static bool IsTileTypeWalkable(const ETileType TileType);
-	
 
 private:
 	static const UDataTable* FindGridDataMappingTable();

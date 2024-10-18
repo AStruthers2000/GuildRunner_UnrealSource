@@ -9,7 +9,7 @@
 // Sets default values
 ACombatGridModifier::ACombatGridModifier()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Grid Modifier Mesh"));
 
@@ -24,7 +24,10 @@ ACombatGridModifier::ACombatGridModifier()
 void ACombatGridModifier::ConfigureMesh()
 {
 	const auto* ShapeData = UGridShapeUtilities::GetShapeData(Shape);
-	if(!ShapeData) return;
+	if (!ShapeData)
+	{
+		return;
+	}
 	StaticMeshComponent->SetStaticMesh(UGridShapeUtilities::GetShapeData(Shape)->Mesh);
 	StaticMeshComponent->SetMaterial(0, UGridShapeUtilities::GetShapeData(Shape)->FlatMaterial);
 
@@ -60,11 +63,10 @@ void ACombatGridModifier::ConfigureMesh()
 void ACombatGridModifier::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if(bUpdateMesh)
+	if (bUpdateMesh)
 	{
 		ConfigureMesh();
 		bUpdateMesh = false;
 	}
 }
 #endif
-

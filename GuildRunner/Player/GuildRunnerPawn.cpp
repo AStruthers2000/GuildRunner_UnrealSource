@@ -12,18 +12,18 @@
 // Sets default values
 AGuildRunnerPawn::AGuildRunnerPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	auto* DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Default Root"));
 	MainCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Main Camera"));
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Main Camera Spring Arm"));
 
-	RootComponent = DefaultRoot;	
-    SpringArm->SetupAttachment(RootComponent);
-    MainCamera->SetupAttachment(SpringArm);
+	RootComponent = DefaultRoot;
+	SpringArm->SetupAttachment(RootComponent);
+	MainCamera->SetupAttachment(SpringArm);
 
-    SpringArm->TargetArmLength = SpringArmTargetLength;
+	SpringArm->TargetArmLength = SpringArmTargetLength;
 	SpringArm->bDoCollisionTest = false;
 	SpringArm->SetRelativeRotation(FRotator(-60, 0, 0));
 }
@@ -33,9 +33,9 @@ void AGuildRunnerPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(const auto PC = Cast<APlayerController>(Controller))
+	if (const auto PC = Cast<APlayerController>(Controller))
 	{
-		if(const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(CombatCameraMappingContext, 0);
 		}
@@ -52,30 +52,33 @@ void AGuildRunnerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(bInterpolating_CameraZoom)
+	if (bInterpolating_CameraZoom)
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, DesiredZoom, DeltaTime, ZoomInterpolationSpeed);
-		if(FMath::IsNearlyEqual(SpringArm->TargetArmLength, DesiredZoom))
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, DesiredZoom, DeltaTime,
+		                                              ZoomInterpolationSpeed);
+		if (FMath::IsNearlyEqual(SpringArm->TargetArmLength, DesiredZoom))
 		{
 			SpringArm->TargetArmLength = DesiredZoom;
 			bInterpolating_CameraZoom = false;
 		}
 	}
 
-	if(bInterpolating_CameraMove)
+	if (bInterpolating_CameraMove)
 	{
-		const auto NewCameraLocation = FMath::VInterpTo(GetActorLocation(), DesiredLocation, DeltaTime, MoveInterpolationSpeed);
+		const auto NewCameraLocation = FMath::VInterpTo(GetActorLocation(), DesiredLocation, DeltaTime,
+		                                                MoveInterpolationSpeed);
 		SetActorLocation(NewCameraLocation);
-		if(FMath::IsNearlyZero(FVector::DistSquared2D(GetActorLocation(), DesiredLocation)))
+		if (FMath::IsNearlyZero(FVector::DistSquared2D(GetActorLocation(), DesiredLocation)))
 		{
 			SetActorLocation(DesiredLocation);
 			bInterpolating_CameraMove = false;
 		}
 	}
 
-	if(bInterpolating_CameraRotation)
+	if (bInterpolating_CameraRotation)
 	{
-		const auto NewCameraRotation = FMath::RInterpTo(GetActorRotation(), DesiredRotation, DeltaTime, RotateInterpolationSpeed);
+		const auto NewCameraRotation = FMath::RInterpTo(GetActorRotation(), DesiredRotation, DeltaTime,
+		                                                RotateInterpolationSpeed);
 		SetActorRotation(NewCameraRotation);
 		if (FMath::IsNearlyEqual(GetActorRotation().Yaw, DesiredRotation.Yaw))
 		{
@@ -90,18 +93,21 @@ void AGuildRunnerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if(const auto EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	if (const auto EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(CombatCameraZoomAction, ETriggerEvent::Triggered, this, &AGuildRunnerPawn::CameraZoom);
-		EnhancedInputComponent->BindAction(CombatCameraMoveAction, ETriggerEvent::Triggered, this, &AGuildRunnerPawn::CameraMove);
-		EnhancedInputComponent->BindAction(CombatCameraFixedRotateAction, ETriggerEvent::Triggered, this, &AGuildRunnerPawn::CameraFixedRotate);
+		EnhancedInputComponent->BindAction(CombatCameraZoomAction, ETriggerEvent::Triggered, this,
+		                                   &AGuildRunnerPawn::CameraZoom);
+		EnhancedInputComponent->BindAction(CombatCameraMoveAction, ETriggerEvent::Triggered, this,
+		                                   &AGuildRunnerPawn::CameraMove);
+		EnhancedInputComponent->BindAction(CombatCameraFixedRotateAction, ETriggerEvent::Triggered, this,
+		                                   &AGuildRunnerPawn::CameraFixedRotate);
 	}
 }
 
 void AGuildRunnerPawn::CameraZoom(const FInputActionValue& Value)
 {
 	const auto ZoomValue = Value.Get<float>();
-	
+
 	bInterpolating_CameraZoom = true;
 	DesiredZoom = FMath::Clamp(DesiredZoom + ZoomValue * CameraZoomSpeed, CameraZoomMin, CameraZoomMax);
 }
@@ -109,7 +115,7 @@ void AGuildRunnerPawn::CameraZoom(const FInputActionValue& Value)
 void AGuildRunnerPawn::CameraMove(const FInputActionValue& Value)
 {
 	auto MoveAxis = Value.Get<FVector2D>();
-	
+
 	bInterpolating_CameraMove = true;
 	MoveAxis *= CameraMoveSpeed;
 
@@ -123,7 +129,8 @@ void AGuildRunnerPawn::CameraFixedRotate(const FInputActionValue& Value)
 {
 	auto RotateValue = Value.Get<float>();
 	RotateValue = RotateValue < 0 ? -1 : 1;
-	
+
 	bInterpolating_CameraRotation = true;
-	DesiredRotation = UKismetMathLibrary::ComposeRotators(DesiredRotation, FRotator(0, CameraRotationAngle * RotateValue, 0));
+	DesiredRotation = UKismetMathLibrary::ComposeRotators(DesiredRotation,
+	                                                      FRotator(0, CameraRotationAngle * RotateValue, 0));
 }

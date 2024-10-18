@@ -13,8 +13,8 @@ UCLASS()
 class GUILDRUNNER_API ADebugTileText : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ADebugTileText();
 
@@ -31,7 +31,8 @@ public:
 	void UpdateTextOnTile(FIntPoint Index);
 
 	UFUNCTION(BlueprintCallable)
-	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart, bool bSortOrder, bool bShowType);
+	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart,
+	                      bool bSortOrder, bool bShowType);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateStateOnTile(FIntPoint Index);
@@ -44,7 +45,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
 
 private:
 	TMap<FIntPoint, ATextRenderActor*> SpawnedTexts;
@@ -59,7 +59,7 @@ private:
 	void ReUpdateAllAfterDelay(FIntPoint Index);
 	UFUNCTION()
 	void ReUpdateAllAfterDelay_NoInput();
-	
+
 	UFUNCTION()
 	void UpdateAllAfterDelay();
 

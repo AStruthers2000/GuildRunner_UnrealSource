@@ -11,10 +11,10 @@ USTRUCT(BlueprintType)
 struct FTileData
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FIntPoint Index = {0, 0};
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte<ETileType> Type = NoTile;
 
@@ -27,4 +27,3 @@ struct FTileData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ACombatGridUnit* UnitOnTile;
 };
-
