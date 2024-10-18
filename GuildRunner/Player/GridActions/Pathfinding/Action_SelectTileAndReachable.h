@@ -3,25 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GuildRunner/Grid/Utilities/ETileType.h"
-#include "GuildRunner/Player/GridActions/GridAction.h"
-#include "Action_FindPathToTarget.generated.h"
+#include "GuildRunner/Player/GridActions/Grid/Action_SelectTile.h"
+#include "Action_SelectTileAndReachable.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GUILDRUNNER_API AAction_FindPathToTarget : public AGridAction
+class GUILDRUNNER_API AAction_SelectTileAndReachable : public AAction_SelectTile
 {
 	GENERATED_BODY()
 
 public:
-	AAction_FindPathToTarget();
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
+	
 	UFUNCTION()
-	void OnPathfindingCompleted(TArray<FIntPoint> Path);
+	void GenerateReachables();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -38,6 +35,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float MaxMsPerFrame = 1.f;
+
+	UFUNCTION()
+	void OnPathfindingCompleted(TArray<FIntPoint> Path);
 
 	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
 };

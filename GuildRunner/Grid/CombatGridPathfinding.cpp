@@ -28,7 +28,7 @@ void UCombatGridPathfinding::BeginPlay()
 
 TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals,
                                                    const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay,
-                                                   float MaxMs)
+                                                   float MaxMs, const bool bReturnReachables, const int32 PathLength)
 {
 	ClearGeneratedPathfindingData();
 
@@ -39,6 +39,8 @@ TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoin
 	DelayBetweenIterations = Delay;
 	bCanCallDelayedPathfinding = false;
 	MaxMsPerFrame = MaxMs;
+	bPathfindingReturnReachables = bReturnReachables;
+	PathfindingMaxPathLength = PathLength;
 
 	//if input data is invalid, we don't want to do pathfinding
 	if (!IsInputDataValid())
@@ -46,6 +48,8 @@ TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoin
 		OnPathfindingCompleted.Broadcast({});
 		return {};
 	}
+
+	//UE_LOG(LogTemp, Display, TEXT("Input to pathfinding is valid"));
 
 	//now do A* pathfinding
 	DiscoverTile({
@@ -55,22 +59,28 @@ TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoin
 
 	if (DelayBetweenIterations <= 0.0f)
 	{
+		//UE_LOG(LogTemp, Display, TEXT("Instant pathfinding selected"));
 		while (DiscoveredTileIndices.Num() > 0)
 		{
 			if (AnalyzeNextDiscoveredTile())
 			{
 				const auto Path = GeneratePath();
+				//UE_LOG(LogTemp, Display, TEXT("Valid path found to target"));
 				OnPathfindingCompleted.Broadcast(Path);
 				return Path;
 			}
 		}
 
+		//UE_LOG(LogTemp, Display, TEXT("No valid path found to target"));
 		//we have analyzed every tile in the grid, so there is no possible path from start to end
-		OnPathfindingCompleted.Broadcast({});
-		return {};
+		const TArray<FIntPoint> EmptyPath = {};
+		const auto ReturnPath = bPathfindingReturnReachables ? AnalyzedTileIndices : EmptyPath;
+		OnPathfindingCompleted.Broadcast(ReturnPath);
+		return ReturnPath;
 	}
 	else
 	{
+		//UE_LOG(LogTemp, Display, TEXT("Delayed pathfinding selected"));
 		bCanCallDelayedPathfinding = true;
 		FindPathWithDelay();
 		return {};
@@ -103,20 +113,32 @@ bool UCombatGridPathfinding::IsInputDataValid() const
 	{
 		return false;
 	}
-	if (!GridReference->IsTileWalkable(TargetIndex))
-	{
-		return false;
-	}
 
-	//if the target tile isn't a tile that this unit can walk on, or a tile with a unit on it, we don't need pathfinding
-	const auto TargetTile = GridReference->GetGridTiles().Find(TargetIndex);
-	if (!TargetTile || !ValidWalkableTiles.Contains(TargetTile->Type))
+	//we only care about validating the target if we are not trying to gather the reachables
+	if(!bPathfindingReturnReachables)
 	{
-		return false;
-	}
-	if (!TargetTile || TargetTile->UnitOnTile)
-	{
-		return false;
+		if (!GridReference->IsTileWalkable(TargetIndex))
+		{
+			return false;
+		}
+
+		if (GetMinimumCostBetweenTwoTiles(StartIndex, TargetIndex, bIncludeDiagonalsInPathfinding) <= PathfindingMaxPathLength)
+		{
+			//if the target tile isn't a tile that this unit can walk on, or a tile with a unit on it, we don't need pathfinding
+			const auto TargetTile = GridReference->GetGridTiles().Find(TargetIndex);
+			if (!TargetTile || !ValidWalkableTiles.Contains(TargetTile->Type))
+			{
+				return false;
+			}
+			if (!TargetTile || TargetTile->UnitOnTile)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -256,31 +278,38 @@ bool UCombatGridPathfinding::DiscoverNextNeighbor()
 	}
 
 	const int32 CostFromStart = CurrentDiscoveredTile.CostFromStart + CurrentNeighbor.CostToEnterTile;
-	const int32 IndexInDiscovered = DiscoveredTileIndices.Find(CurrentNeighbor.Index);
-
-	if (IndexInDiscovered != INDEX_NONE)
+	if(CostFromStart <= PathfindingMaxPathLength)
 	{
-		CurrentNeighbor = PathfindingData.FindRef(CurrentNeighbor.Index);
+		const int32 IndexInDiscovered = DiscoveredTileIndices.Find(CurrentNeighbor.Index);
 
-		//this neighbor isn't good enough to continue pathfinding with this neighbor
-		if (CostFromStart >= CurrentNeighbor.CostFromStart)
+		if (IndexInDiscovered != INDEX_NONE)
 		{
-			return false;
+			CurrentNeighbor = PathfindingData.FindRef(CurrentNeighbor.Index);
+
+			//this neighbor isn't good enough to continue pathfinding with this neighbor
+			if (CostFromStart >= CurrentNeighbor.CostFromStart)
+			{
+				return false;
+			}
+
+			DiscoveredTileSortingCosts.RemoveAt(IndexInDiscovered);
+			DiscoveredTileIndices.RemoveAt(IndexInDiscovered);
 		}
+		FPathfindingData NewTileToDiscover;
+		NewTileToDiscover.Index = CurrentNeighbor.Index;
+		NewTileToDiscover.CostToEnterTile = CurrentNeighbor.CostToEnterTile;
+		NewTileToDiscover.CostFromStart = CostFromStart;
+		NewTileToDiscover.MinimumCostToTarget = GetMinimumCostBetweenTwoTiles(
+			CurrentNeighbor.Index, TargetIndex, bIncludeDiagonalsInPathfinding);
+		NewTileToDiscover.PreviousTile = CurrentDiscoveredTile.Index;
+		DiscoverTile(NewTileToDiscover);
 
-		DiscoveredTileSortingCosts.RemoveAt(IndexInDiscovered);
-		DiscoveredTileIndices.RemoveAt(IndexInDiscovered);
+		return CurrentNeighbor.Index == TargetIndex;
 	}
-	FPathfindingData NewTileToDiscover;
-	NewTileToDiscover.Index = CurrentNeighbor.Index;
-	NewTileToDiscover.CostToEnterTile = CurrentNeighbor.CostToEnterTile;
-	NewTileToDiscover.CostFromStart = CostFromStart;
-	NewTileToDiscover.MinimumCostToTarget = GetMinimumCostBetweenTwoTiles(
-		CurrentNeighbor.Index, TargetIndex, bIncludeDiagonalsInPathfinding);
-	NewTileToDiscover.PreviousTile = CurrentDiscoveredTile.Index;
-	DiscoverTile(NewTileToDiscover);
-
-	return CurrentNeighbor.Index == TargetIndex;
+	else
+	{
+		return false;
+	}
 }
 
 void UCombatGridPathfinding::InsertTileIntoDiscoveredArray(const FPathfindingData& TileData)
@@ -562,6 +591,7 @@ void UCombatGridPathfinding::PerformDelayedPathfinding()
 	else
 	{
 		//we have analyzed every tile in the grid, so there is no possible path from start to end
-		OnPathfindingCompleted.Broadcast({});
+		const TArray<FIntPoint> EmptyPath = {};
+		OnPathfindingCompleted.Broadcast(bPathfindingReturnReachables ? AnalyzedTileIndices : EmptyPath);
 	}
 }

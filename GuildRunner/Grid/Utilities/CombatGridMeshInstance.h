@@ -34,6 +34,9 @@ class GUILDRUNNER_API UCombatGridMeshInstance : public USceneComponent
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
 		meta = (AllowPrivateAccess = "true"))
 	FLinearColor AnalyzedColor = FLinearColor(1, 0, 125.f / 255.f, 1);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
+    		meta = (AllowPrivateAccess = "true"))
+    	FLinearColor ReachableColor = FLinearColor(111.f / 255.f, 143.f / 255.f, 175.f / 255.f, 1);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|TileTypes",
 		meta = (AllowPrivateAccess = "true"))

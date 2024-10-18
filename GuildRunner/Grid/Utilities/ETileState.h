@@ -11,5 +11,6 @@ enum ETileState : uint8
 	IsNeighbor,
 	IsInPath,
 	IsDiscovered,
-	IsAnalyzed
+	IsAnalyzed,
+	IsReachable
 };

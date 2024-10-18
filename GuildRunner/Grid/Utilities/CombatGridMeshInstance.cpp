@@ -101,7 +101,7 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<
 		}
 
 		//this list is the priority of our colors
-		for (const auto& State : {Selected, Hovered, IsNeighbor, IsInPath, IsDiscovered, IsAnalyzed})
+		for (const auto& State : {Selected, Hovered, IsNeighbor, IsInPath, IsDiscovered, IsAnalyzed, IsReachable})
 		{
 			if (States.Contains(State))
 			{
@@ -120,6 +120,8 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<
 					return DiscoveredColor;
 				case IsAnalyzed:
 					return AnalyzedColor;
+				case IsReachable:
+					return ReachableColor;
 				case None:
 				default:
 					IsFilledValue = 0.f;

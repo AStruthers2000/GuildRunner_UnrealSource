@@ -58,7 +58,8 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals,
-	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs);
+	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs,
+	                           const bool bReturnReachables = false, const int32 PathLength = 1);
 
 	UFUNCTION(BlueprintCallable)
 	void ClearGeneratedPathfindingData();
@@ -117,6 +118,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float MaxMsPerFrame;
+
+	bool bPathfindingReturnReachables;
+	int32 PathfindingMaxPathLength;
 
 	FDateTime LoopStartTime;
 
