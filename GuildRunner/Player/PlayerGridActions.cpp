@@ -87,6 +87,8 @@ void APlayerGridActions::TrySelectTileAndUnit(const FIntPoint& Index, const bool
 		SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 	}
 
+	OnSelectedTileChanged.Broadcast(GetSelectedTile());
+
 	/*
 	//deselect currently selected unit
 	if (SelectedUnit)

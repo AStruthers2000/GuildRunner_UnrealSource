@@ -18,6 +18,8 @@ class ACombatGrid;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPlayerGridActionDelegate, AGridAction*, LeftClickAction, AGridAction*,
                                              RightClickAction);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerGridActionTileDelegate, FIntPoint, Index);
+
 UCLASS()
 class GUILDRUNNER_API APlayerGridActions : public AActor
 {
@@ -58,6 +60,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FPlayerGridActionDelegate OnSelectedActionsChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FPlayerGridActionTileDelegate OnSelectedTileChanged;
 
 protected:
 	virtual void BeginPlay() override;

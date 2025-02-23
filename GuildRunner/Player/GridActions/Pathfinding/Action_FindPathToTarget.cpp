@@ -11,6 +11,14 @@ AAction_FindPathToTarget::AAction_FindPathToTarget()
 {
 }
 
+void AAction_FindPathToTarget::BeginPlay()
+{
+	Super::BeginPlay();
+
+	PlayerGridActions->OnSelectedTileChanged.AddDynamic(this, &AAction_FindPathToTarget::OnSelectedTileChanged);
+}
+
+
 void AAction_FindPathToTarget::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
@@ -45,6 +53,12 @@ void AAction_FindPathToTarget::OnPathfindingCompleted(TArray<FIntPoint> Path)
 	}
 }
 
+void AAction_FindPathToTarget::OnSelectedTileChanged(FIntPoint Index)
+{
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+}
+
+
 TArray<TEnumAsByte<ETileType>> AAction_FindPathToTarget::GetValidWalkingTiles() const
 {
 	TArray<TEnumAsByte<ETileType>> ValidTiles = {Normal, DoubleCost, TripleCost};
@@ -55,3 +69,4 @@ TArray<TEnumAsByte<ETileType>> AAction_FindPathToTarget::GetValidWalkingTiles() 
 
 	return ValidTiles;
 }
+
