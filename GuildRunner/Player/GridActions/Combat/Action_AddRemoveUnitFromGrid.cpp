@@ -17,6 +17,8 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("Action_AddRemoveUnitFromGrid::ExecuteGridAction:\tSorry, can't add units to the grid at this time\n"));
+	/*
 	if (bIsAddingUnit)
 	{
 		if (PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex))
@@ -52,13 +54,14 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 	{
 		RemoveUnitOnTile(TileIndex);
 	}
+	*/
 }
 
 void AAction_AddRemoveUnitFromGrid::RemoveUnitOnTile(const FIntPoint& TileIndex) const
 {
-	const auto* ClickedTile = PlayerGridActions->GetCombatGridReference()->GetGridTiles().Find(TileIndex);
-	if (ClickedTile && ClickedTile->UnitOnTile)
-	{
-		PlayerGridActions->GetCombatSystemReference()->RemoveUnitInCombat(ClickedTile->UnitOnTile);
-	}
+	//const auto* ClickedTile = PlayerGridActions->GetCombatGridReference()->GetGridTiles().Find(TileIndex);
+	//if (ClickedTile && ClickedTile->UnitOnTile)
+	//{
+	//	PlayerGridActions->GetCombatSystemReference()->RemoveUnitInCombat(ClickedTile->UnitOnTile);
+	//}
 }

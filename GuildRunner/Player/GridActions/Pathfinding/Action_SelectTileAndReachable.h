@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GuildRunner/Grid/Utilities/ETileType.h"
 #include "GuildRunner/Player/GridActions/Grid/Action_SelectTile.h"
 #include "Action_SelectTileAndReachable.generated.h"
 

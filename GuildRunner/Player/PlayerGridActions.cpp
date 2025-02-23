@@ -87,6 +87,7 @@ void APlayerGridActions::TrySelectTileAndUnit(const FIntPoint& Index, const bool
 		SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 	}
 
+	/*
 	//deselect currently selected unit
 	if (SelectedUnit)
 	{
@@ -111,6 +112,7 @@ void APlayerGridActions::TrySelectTileAndUnit(const FIntPoint& Index, const bool
 			}
 		}
 	}
+	*/
 }
 
 void APlayerGridActions::UpdateTileUnderCursor()
@@ -184,6 +186,7 @@ void APlayerGridActions::DeselectTile(const FInputActionValue& Value)
 
 ACombatGridUnit* APlayerGridActions::GetUnitUnderCursor()
 {
+	/*
 	const auto* PC = UGameplayStatics::GetPlayerController(this, 0);
 	FHitResult OutHit;
 	if (PC->GetHitResultUnderCursor(ECC_GameTraceChannel3, false, OutHit))
@@ -200,6 +203,8 @@ ACombatGridUnit* APlayerGridActions::GetUnitUnderCursor()
 	{
 		return Tile->UnitOnTile;
 	}
+	return nullptr;
+	*/
 	return nullptr;
 }
 

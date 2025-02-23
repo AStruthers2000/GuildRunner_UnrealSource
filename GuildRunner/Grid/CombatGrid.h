@@ -111,7 +111,7 @@ public:
 	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
 
 	//DANGEROUS FUNCTION, ALLOWS DIRECT MODIFICATION OF TILES IN GRID. ONLY USE IN EXTREME CASES
-	TMap<FIntPoint, FTileData>* GetGridTilesRef() { return &GridTiles; }
+	//TMap<FIntPoint, FTileData>* GetGridTilesRef() { return &GridTiles; }
 
 private:
 	UPROPERTY(VisibleAnywhere)

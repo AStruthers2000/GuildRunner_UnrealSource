@@ -18,10 +18,14 @@ class GUILDRUNNER_API AAction_FindPathToTarget : public AGridAction
 public:
 	AAction_FindPathToTarget();
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
+	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
 	void OnPathfindingCompleted(TArray<FIntPoint> Path);
+
+	UFUNCTION()
+	void OnReachableTilesCompleted(TArray<FIntPoint> Path);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -40,4 +44,6 @@ private:
 	float MaxMsPerFrame = 1.f;
 
 	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
+
+	TArray<FIntPoint> ReachableTiles;
 };

@@ -12,13 +12,15 @@ struct FTileData;
 class ACombatGrid;
 
 #define COMBAT_GRID_NORMAL_COST 10
-#define COMBAT_GRID_DIAG_COST 14
+#define COMBAT_GRID_DIAG_COST 4
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, FIntPoint, Index);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, TArray<FIntPoint>, FullPath);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatReachableTilesCompletedDelegate, TArray<FIntPoint>, Reachables);
 
 UCLASS()
 class GUILDRUNNER_API UCombatGridPathfinding : public UActorComponent
@@ -48,6 +50,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatPathfindingCompletedDelegate OnPathfindingCompleted;
 
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatReachableTilesCompletedDelegate OnReachableTilesCompleted;
+
 private:
 	UPROPERTY()
 	ACombatGrid* GridReference = nullptr;
@@ -58,14 +63,17 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals,
-	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs,
-	                           const bool bReturnReachables = false, const int32 PathLength = 1);
+	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs);
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FIntPoint> GetReachableTiles(FIntPoint StartTile, bool bUsingDiagonals,
+							   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, int32 Range);
 
 	UFUNCTION(BlueprintCallable)
 	void ClearGeneratedPathfindingData();
 
 private:
-	bool IsInputDataValid() const;
+	bool IsInputDataValid(bool bGeneratingReachables) const;
 	void DiscoverTile(const FPathfindingData& TilePathData);
 	int GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, bool bUsingDiagonals) const;
 	bool AnalyzeNextDiscoveredTile();
@@ -118,9 +126,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float MaxMsPerFrame;
-
-	bool bPathfindingReturnReachables;
-	int32 PathfindingMaxPathLength;
 
 	FDateTime LoopStartTime;
 

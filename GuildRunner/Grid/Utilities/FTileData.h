@@ -5,6 +5,7 @@
 #include "FTileData.generated.h"
 
 
+class ACombatGridObject;
 class ACombatGridUnit;
 
 USTRUCT(BlueprintType)
@@ -24,6 +25,9 @@ struct FTileData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TEnumAsByte<ETileState>> States;
 
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//ACombatGridUnit* UnitOnTile;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ACombatGridUnit* UnitOnTile;
+	TArray<ACombatGridObject*> ObjectOnTile;
 };

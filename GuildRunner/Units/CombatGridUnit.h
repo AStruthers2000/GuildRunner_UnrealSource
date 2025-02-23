@@ -7,6 +7,7 @@
 #include "EUnitType.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Actor.h"
+#include "GuildRunner/Grid/CombatGridObject.h"
 #include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "Utilities/FCombatGridUnitData.h"
 #include "CombatGridUnit.generated.h"
@@ -18,7 +19,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatUnitFinishedWalking, ACombatG
 class ACombatGrid;
 
 UCLASS()
-class GUILDRUNNER_API ACombatGridUnit : public AActor
+class GUILDRUNNER_API ACombatGridUnit : public ACombatGridObject
 {
 	GENERATED_BODY()
 

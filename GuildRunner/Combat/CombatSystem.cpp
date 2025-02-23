@@ -47,6 +47,7 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& I
 		return;
 	}
 
+	/*
 	//if the unit's index is already the index we want, we don't want to move the unit
 	if (Unit->GetIndexOnGrid() != Index || bForceUpdate)
 	{
@@ -81,6 +82,7 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& I
 	const auto* TargetTile = ManagedGrid->GetGridTiles().Find(Index);
 	const FVector TargetLocation = TargetTile ? TargetTile->Transform.GetLocation() : FVector(-999'999.f);
 	Unit->SetActorLocation(TargetLocation);
+	*/
 }
 
 void ACombatSystem::OnGridGenerated()
