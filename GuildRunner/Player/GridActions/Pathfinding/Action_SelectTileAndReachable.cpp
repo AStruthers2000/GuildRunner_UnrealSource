@@ -24,13 +24,11 @@ void AAction_SelectTileAndReachable::GenerateReachables()
 
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
 
-	//adds delegate to OnPathfindingComplete, which will change the color of each of the tiles to the IsReachable color
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnReachableTilesCompleted.AddDynamic(
 		this, &AAction_SelectTileAndReachable::OnPathfindingCompleted);
 
-	//call GetReachableTiles to kick off BFS floodfill algorithm
-	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->GetReachableTiles(
-		PlayerGridActions->GetSelectedTile(), bIncludeDiagonals, GetValidWalkingTiles(), MaxPathLength);
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
+		PlayerGridActions->GetSelectedTile(), FPATHFINDINGDATA_DEFAULT_INDEX, bIncludeDiagonals, true, GetValidWalkingTiles(), MaxPathLength);
 }
 
 /**
@@ -45,6 +43,7 @@ void AAction_SelectTileAndReachable::OnPathfindingCompleted(TArray<FIntPoint> Pa
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsReachable);
 	}
 }
+
 
 TArray<TEnumAsByte<ETileType>> AAction_SelectTileAndReachable::GetValidWalkingTiles() const
 {

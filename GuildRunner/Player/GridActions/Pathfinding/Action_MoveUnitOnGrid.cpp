@@ -33,13 +33,13 @@ void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 
 	const auto bMoveDiagonal = CurrentUnit->GetUnitData().Stats.bCanMoveDiagonally;
 	const auto ValidTileTypes = CurrentUnit->GetUnitData().Stats.ValidTileTypes;
-	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
-		PlayerGridActions->GetSelectedTile(),
-		TileIndex,
-		bMoveDiagonal,
-		ValidTileTypes,
-		0.f,
-		0.f);
+	//PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
+	//	PlayerGridActions->GetSelectedTile(),
+	//	TileIndex,
+	//	bMoveDiagonal,
+	//	ValidTileTypes,
+	//	0.f,
+	//	0.f);
 }
 
 

@@ -11,8 +11,8 @@
 struct FTileData;
 class ACombatGrid;
 
-#define COMBAT_GRID_NORMAL_COST 10
-#define COMBAT_GRID_DIAG_COST 4
+constexpr int32 COMBAT_GRID_NORMAL_COST = 10;
+constexpr int32 COMBAT_GRID_DIAG_COST = 4;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, FIntPoint, Index);
 
@@ -21,6 +21,18 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, TArray<FIntPoint>, FullPath);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatReachableTilesCompletedDelegate, TArray<FIntPoint>, Reachables);
+
+struct FTileNode
+{
+	FIntPoint Tile;
+	int32 Cost;
+
+	FTileNode()
+		: Tile(FPATHFINDINGDATA_DEFAULT_INDEX), Cost(0) {}
+
+	FTileNode(const FIntPoint& InTile, int32 InCost)
+		: Tile(InTile), Cost(InCost) {}
+};
 
 UCLASS()
 class GUILDRUNNER_API UCombatGridPathfinding : public UActorComponent
@@ -33,14 +45,17 @@ public:
 	virtual void BeginPlay() override;
 
 	void SetGridPathfindingReference(ACombatGrid* Reference) { GridReference = Reference; }
-	TMap<FIntPoint, FPathfindingData> GetPathfindingData() const { return PathfindingData; }
-	TArray<FIntPoint> GetDiscoveredTileIndices() const { return DiscoveredTileIndices; }
-	TArray<FIntPoint> GetAnalyzedTileIndices() const { return AnalyzedTileIndices; }
-	TArray<int32> GetDiscoveredTileSortingCosts() const { return DiscoveredTileSortingCosts; }
+
+	//ONLY CALLED FROM DebugText
+	TMap<FIntPoint, FPathfindingData> GetPathfindingData() const { return {}; }
+	TArray<FIntPoint> GetDiscoveredTileIndices() const { return {}; }
+	TArray<FIntPoint> GetAnalyzedTileIndices() const { return {}; }
+	TArray<int32> GetDiscoveredTileSortingCosts() const { return {}; }
 
 	/******************************************************************
 	 * Pathfinding Callbacks
 	 ******************************************************************/
+	//NEVER CALLED, REMOVE LATER
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatPathfindingDataUpdateDelegate OnPathfindingDataUpdated;
 
@@ -62,38 +77,20 @@ private:
 	 ******************************************************************/
 public:
 	UFUNCTION(BlueprintCallable)
-	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals,
-	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, float Delay, float MaxMs);
+	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, bool bCalculatingRange,
+												   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, int32 Range);
 
-	UFUNCTION(BlueprintCallable)
-	TArray<FIntPoint> GetReachableTiles(FIntPoint StartTile, bool bUsingDiagonals,
-							   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, int32 Range);
-
-	UFUNCTION(BlueprintCallable)
-	void ClearGeneratedPathfindingData();
+	//UFUNCTION(BlueprintCallable)
+	//void ClearGeneratedPathfindingData();
 
 private:
+	void ExecuteAsyncPathfinding(const FIntPoint& StartTile, const FIntPoint& TargetTile, bool bUsingDiagonals, const int32& Range) const;
 	bool IsInputDataValid(bool bGeneratingReachables) const;
-	void DiscoverTile(const FPathfindingData& TilePathData);
 	int GetMinimumCostBetweenTwoTiles(const FIntPoint& Index1, const FIntPoint& Index2, bool bUsingDiagonals) const;
-	bool AnalyzeNextDiscoveredTile();
-	TArray<FIntPoint> GeneratePath() const;
-	FPathfindingData PullCheapestTileOutOfDiscoveredList();
-	bool DiscoverNextNeighbor();
-	void InsertTileIntoDiscoveredArray(const FPathfindingData& TileData);
-	bool IsDiagonal(const FIntPoint& Index1, const FIntPoint& Index2) const;
-	int32 GetTileSortingCost(const FPathfindingData& Tile) const;
 
 	FIntPoint StartIndex;
 	FIntPoint TargetIndex;
-	bool bIncludeDiagonalsInPathfinding;
-	TArray<FIntPoint> DiscoveredTileIndices;
-	TArray<int32> DiscoveredTileSortingCosts;
-	TArray<FIntPoint> AnalyzedTileIndices;
-	FPathfindingData CurrentDiscoveredTile;
-	TMap<FIntPoint, FPathfindingData> PathfindingData;
-	TArray<FPathfindingData> CurrentNeighbors;
-	FPathfindingData CurrentNeighbor;
+	TArray<TEnumAsByte<ETileType>> ValidWalkableTiles = {Normal, DoubleCost, TripleCost, FlyingUnitsOnly};
 
 	/******************************************************************
 	 * Neighbor Checking
@@ -111,26 +108,5 @@ private:
 	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor,
 	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const;
 	static int32 CalculateCostToEnterTile(const FTileData& InputTile);
-	TArray<TEnumAsByte<ETileType>> ValidWalkableTiles = {Normal, DoubleCost, TripleCost, FlyingUnitsOnly};
-
-	/******************************************************************
-	 * Delayed Pathfinding
-	 ******************************************************************/
-public:
-	UFUNCTION(BlueprintCallable)
-	void FindPathWithDelay();
-
-private:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float DelayBetweenIterations;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float MaxMsPerFrame;
-
-	FDateTime LoopStartTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bCanCallDelayedPathfinding = false;
-
-	void PerformDelayedPathfinding();
+	
 };

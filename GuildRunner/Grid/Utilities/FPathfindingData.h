@@ -26,3 +26,29 @@ struct FPathfindingData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FIntPoint PreviousTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 };
+
+
+USTRUCT(BlueprintType)
+struct FPathfindingNode
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FIntPoint Index = FPATHFINDINGDATA_DEFAULT_INDEX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int GCost;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int HCost;
+	
+	int FCost() const { return GCost + HCost; }
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSharedPtr<FPathfindingNode> Parent;
+
+	FPathfindingNode() : GCost(0), HCost(0), Parent(nullptr) {}
+
+	FPathfindingNode(const FIntPoint& InPosition, int32 InGCost, int32 InHCost, TSharedPtr<FPathfindingNode> InParent = nullptr)
+		: Index(InPosition), GCost(InGCost), HCost(InHCost), Parent(InParent) {}
+};
