@@ -30,7 +30,7 @@ void AAction_SelectTile::ExecuteGridAction(FIntPoint TileIndex)
 		PlayerGridActions->SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 	}
 	*/
-	PlayerGridActions->TrySelectTileAndUnit(TileIndex);
+	PlayerGridActions->TrySelectTile(TileIndex);
 }
 
 void AAction_SelectTile::EndPlay(const EEndPlayReason::Type EndPlayReason)

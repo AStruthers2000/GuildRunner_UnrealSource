@@ -20,6 +20,8 @@ void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
+	//TODO: Unit code
+	/*
 	CurrentUnit = PlayerGridActions->GetSelectedUnit();
 	if (!CurrentUnit)
 	{
@@ -40,6 +42,7 @@ void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 	//	ValidTileTypes,
 	//	0.f,
 	//	0.f);
+	*/
 }
 
 
@@ -52,6 +55,8 @@ void AAction_MoveUnitOnGrid::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AAction_MoveUnitOnGrid::OnPathfindingCompleted(TArray<FIntPoint> Path)
 {
+	//TODO: Unit code
+	/*
 	if (!CurrentUnit)
 	{
 		return;
@@ -67,6 +72,7 @@ void AAction_MoveUnitOnGrid::OnPathfindingCompleted(TArray<FIntPoint> Path)
 	}
 	CurrentUnit->SetMoveDurationPerTile(MoveDurationPerTile);
 	CurrentUnit->UnitFollowPath(Path);
+	*/
 }
 
 void AAction_MoveUnitOnGrid::OnUnitFinishedWalking(ACombatGridUnit* Unit)

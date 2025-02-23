@@ -36,6 +36,7 @@ void APlayerGridActions::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("[APlayerGridActions::BeginPlay]:\tNo combat system found for player actions"));
 	}
 
+	//binding right and left click to the appropriate callback functions
 	if (const auto PC = Cast<APlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
 	{
 		const auto EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PC->InputComponent);
@@ -43,18 +44,18 @@ void APlayerGridActions::BeginPlay()
 		if (Subsystem && EnhancedInputComponent)
 		{
 			Subsystem->AddMappingContext(CombatGridActionsMappingContext, 0);
-			EnhancedInputComponent->BindAction(CombatGridSelectTileAction, ETriggerEvent::Triggered, this,
-			                                   &APlayerGridActions::SelectTile);
-			EnhancedInputComponent->BindAction(CombatGridDeselectTileAction, ETriggerEvent::Triggered, this,
-			                                   &APlayerGridActions::DeselectTile);
+			EnhancedInputComponent->BindAction(CombatGridLeftClickAction, ETriggerEvent::Triggered, this,
+			                                   &APlayerGridActions::ExecuteLeftClickActionOnHoveredTile);
+			EnhancedInputComponent->BindAction(CombatGridRightClickAction, ETriggerEvent::Triggered, this,
+			                                   &APlayerGridActions::ExecuteRightClickActionOnHoveredTile);
 		}
 	}
 
 	GridReference->OnCombatGridGenerated.AddDynamic(this, &APlayerGridActions::OnGridGenerated);
 	GridReference->OnTileDataUpdated.AddDynamic(this, &APlayerGridActions::OnTileDataUpdated);
-	CombatSystemReference->OnGridUnitIndexChanged.AddDynamic(this, &APlayerGridActions::OnUnitGridIndexChanged);
+	//CombatSystemReference->OnGridUnitIndexChanged.AddDynamic(this, &APlayerGridActions::OnUnitGridIndexChanged);
 
-	SetSelectedActions(PlayerAction_SelectTile, PlayerAction_SelectTile);
+	SetSelectedActions(PlayerAction_LeftClickOnTile, PlayerAction_LeftClickOnTile);
 }
 
 void APlayerGridActions::Tick(float DeltaSeconds)
@@ -71,24 +72,39 @@ void APlayerGridActions::SetSelectedActions(TSubclassOf<AGridAction> SelectedAct
 	OnSelectedActionsChanged.Broadcast(LeftClickAction, RightClickAction);
 }
 
-void APlayerGridActions::TrySelectTileAndUnit(const FIntPoint& Index, const bool bForceUpdate)
+void APlayerGridActions::TrySelectTile(const FIntPoint& Index, const bool bForceUpdate)
 {
 	//first, try and select the given tile
-	//if the indices are different, select this tile
-	if (GetSelectedTile() != Index || bForceUpdate)
+	FIntPoint Default_Index = FPATHFINDINGDATA_DEFAULT_INDEX;
+	if (Index == Default_Index)
 	{
+		//deselect the current tile and set the selected tile to FPATHFINDINGDATA_DEFAULT_INDEX
 		GetCombatGridReference()->RemoveStateFromTile(GetSelectedTile(), Selected);
+		SetSelectedTile(Index);
+	}
+	else if (GetSelectedTile() != Index || bForceUpdate)
+	{
+		//if the indices are different, deselect the current tile and select this tile
+		GetCombatGridReference()->RemoveStateFromTile(GetSelectedTile(), Selected);
+
 		SetSelectedTile(Index);
 		GetCombatGridReference()->AddStateToTile(GetSelectedTile(), Selected);
 	}
 	else
 	{
-		GetCombatGridReference()->RemoveStateFromTile(GetSelectedTile(), Selected);
-		SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
+		//if the indies are the same, we want to increment the number of times that tile was selected
+		GetCombatGridReference()->IncrementTimesTileHasBeenSelected(GetSelectedTile());
 	}
 
 	OnSelectedTileChanged.Broadcast(GetSelectedTile());
 
+	//the selected object will be set to one of the elements in the FTileData::ObjectsOnTile array for the selected tile
+	auto TileData = GetCombatGridReference()->GetGridTiles().Find(GetSelectedTile());
+	//auto SelectedObject = TileData->GetSelectedItem();
+	//if (SelectedObject != nullptr)
+	//{
+		
+	//}
 	/*
 	//deselect currently selected unit
 	if (SelectedUnit)
@@ -124,6 +140,8 @@ void APlayerGridActions::UpdateTileUnderCursor()
 		return;
 	}
 
+
+	/*
 	auto* PossiblyHoveredUnit = GetUnitUnderCursor();
 	if (PossiblyHoveredUnit != HoveredUnit)
 	{
@@ -140,16 +158,21 @@ void APlayerGridActions::UpdateTileUnderCursor()
 			HoveredUnit->SetIsHovered(true);
 		}
 	}
+	*/
 
 	FIntPoint NewTileIndex;
-	if (HoveredUnit)
-	{
-		NewTileIndex = HoveredUnit->GetIndexOnGrid();
-	}
-	else
-	{
+	//if (HoveredUnit)
+	//{
+		//units are sometimes taller than the tile they're standing on (if we are pointing the mouse at the "head"
+		//of a unit, the cursor might be intersecting with the tile "behind" the unit, not the tile the unit is on
+		//effectively, if the mouse raycast hits a unit before it hits the ground, we want to hover on the tile the unit
+		//is on, not the tile that the mouse raycast would actually hit
+	//	NewTileIndex = HoveredUnit->GetIndexOnGrid();
+	//}
+	//else
+	//{
 		NewTileIndex = GridReference->GetTileIndexUnderCursor(0);
-	}
+	//}
 
 	if (HoveredTile != NewTileIndex)
 	{
@@ -162,7 +185,7 @@ void APlayerGridActions::UpdateTileUnderCursor()
 	}
 }
 
-void APlayerGridActions::SelectTile(const FInputActionValue& Value)
+void APlayerGridActions::ExecuteLeftClickActionOnHoveredTile(const FInputActionValue& Value)
 {
 	//if(!GridReference) return;
 	//GridReference->AddStateToTile(HoveredTile, Selected);
@@ -174,7 +197,7 @@ void APlayerGridActions::SelectTile(const FInputActionValue& Value)
 	}
 }
 
-void APlayerGridActions::DeselectTile(const FInputActionValue& Value)
+void APlayerGridActions::ExecuteRightClickActionOnHoveredTile(const FInputActionValue& Value)
 {
 	//if(!GridReference) return;
 	//GridReference->RemoveStateFromTile(HoveredTile, Selected);
@@ -186,8 +209,8 @@ void APlayerGridActions::DeselectTile(const FInputActionValue& Value)
 	}
 }
 
-ACombatGridUnit* APlayerGridActions::GetUnitUnderCursor()
-{
+//ACombatGridUnit* APlayerGridActions::GetUnitUnderCursor()
+//{
 	/*
 	const auto* PC = UGameplayStatics::GetPlayerController(this, 0);
 	FHitResult OutHit;
@@ -207,8 +230,8 @@ ACombatGridUnit* APlayerGridActions::GetUnitUnderCursor()
 	}
 	return nullptr;
 	*/
-	return nullptr;
-}
+//	return nullptr;
+//}
 
 AGridAction* APlayerGridActions::TrySpawnGridAction(AGridAction*& ActionObject, TSubclassOf<AGridAction> ActionClass)
 {
@@ -241,11 +264,11 @@ void APlayerGridActions::OnGridGenerated()
 {
 	if (GridReference->IsIndexValid(SelectedTile))
 	{
-		TrySelectTileAndUnit(SelectedTile, true);
+		TrySelectTile(SelectedTile, true);
 	}
 	else
 	{
-		TrySelectTileAndUnit(FPATHFINDINGDATA_DEFAULT_INDEX, true);
+		TrySelectTile(FPATHFINDINGDATA_DEFAULT_INDEX, true);
 	}
 }
 
@@ -257,10 +280,10 @@ void APlayerGridActions::OnTileDataUpdated(FIntPoint Index)
 	}
 }
 
-void APlayerGridActions::OnUnitGridIndexChanged(ACombatGridUnit* Unit)
-{
-	if (Unit == SelectedUnit)
-	{
-		TrySelectTileAndUnit(Unit->GetIndexOnGrid(), true);
-	}
-}
+//void APlayerGridActions::OnUnitGridIndexChanged(ACombatGridUnit* Unit)
+//{
+//	if (Unit == SelectedUnit)
+//	{
+//		TrySelectTile(Unit->GetIndexOnGrid(), true);
+//	}
+//}

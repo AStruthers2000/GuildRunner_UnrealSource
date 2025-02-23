@@ -272,6 +272,10 @@ void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
 	auto* Data = GridTiles.Find(Index);
 	if (Data)
 	{
+		if (State == Selected)
+		{
+			Data->TileSelected();
+		}
 		if (Data->States.AddUnique(State) >= 0)
 		{
 			GridTiles.Add(Data->Index, *Data);
@@ -289,6 +293,10 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 	auto* Data = GridTiles.Find(Index);
 	if (Data)
 	{
+		if (State == Selected)
+		{
+			Data->TileDeselected();
+		}
 		if (Data->States.Remove(State))
 		{
 			GridTiles.Add(Data->Index, *Data);
@@ -298,6 +306,15 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 			CombatGridVisual->UpdateTileVisual(*Data);
 			OnTileStateUpdated.Broadcast(Index);
 		}
+	}
+}
+
+void ACombatGrid::IncrementTimesTileHasBeenSelected(const FIntPoint& Index)
+{
+	auto* Data = GridTiles.Find(Index);
+	if (Data)
+	{
+		Data->IncrementTimesSelected();
 	}
 }
 

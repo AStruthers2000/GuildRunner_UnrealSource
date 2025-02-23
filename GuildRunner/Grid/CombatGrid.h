@@ -102,6 +102,7 @@ public:
 	const FGridShapeData* GetCurrentShapeData() const;
 	void AddStateToTile(const FIntPoint& Index, ETileState State);
 	void RemoveStateFromTile(const FIntPoint& Index, ETileState State);
+	void IncrementTimesTileHasBeenSelected(const FIntPoint& Index);
 	bool IsIndexValid(const FIntPoint& Index);
 
 	TArray<FIntPoint> GetAllTilesWithState(ETileState State);

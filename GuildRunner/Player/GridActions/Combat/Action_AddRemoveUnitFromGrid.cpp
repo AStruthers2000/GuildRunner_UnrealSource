@@ -18,6 +18,14 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Action_AddRemoveUnitFromGrid::ExecuteGridAction:\tSorry, can't add units to the grid at this time\n"));
+
+	if (bIsAddingUnit)
+	{
+		if (PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex))
+		{
+			
+		}
+	}
 	/*
 	if (bIsAddingUnit)
 	{

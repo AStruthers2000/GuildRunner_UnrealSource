@@ -7,6 +7,7 @@
 #include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "PlayerGridActions.generated.h"
 
+class ACombatGridObject;
 class ACombatGridUnit;
 class ACombatSystem;
 class AGridAction;
@@ -29,35 +30,21 @@ class GUILDRUNNER_API APlayerGridActions : public AActor
 	UInputMappingContext* CombatGridActionsMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
-	UInputAction* CombatGridSelectTileAction;
+	UInputAction* CombatGridLeftClickAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
-	UInputAction* CombatGridDeselectTileAction;
+	UInputAction* CombatGridRightClickAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AGridAction> PlayerAction_SelectTile;
+	TSubclassOf<AGridAction> PlayerAction_LeftClickOnTile;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AGridAction> PlayerAction_DeselectTile;
+	TSubclassOf<AGridAction> PlayerAction_RightClickOnTile;
 
 public:
-	// Sets default values for this actor's properties
-	APlayerGridActions();
-
-	FIntPoint GetHoveredTile() const { return HoveredTile; }
-	void SetHoveredTile(const FIntPoint& NewIndex) { HoveredTile = NewIndex; }
-	FIntPoint GetSelectedTile() const { return SelectedTile; }
-	void SetSelectedTile(const FIntPoint& NewIndex) { SelectedTile = NewIndex; }
-	ACombatGridUnit* GetHoveredUnit() const { return HoveredUnit; }
-	ACombatGridUnit* GetSelectedUnit() const { return SelectedUnit; }
-	ACombatGrid* GetCombatGridReference() const { return GridReference; }
-	ACombatSystem* GetCombatSystemReference() const { return CombatSystemReference; }
-
-	UFUNCTION(BlueprintCallable)
-	void SetSelectedActions(TSubclassOf<AGridAction> SelectedAction, TSubclassOf<AGridAction> DeselectedAction);
-
-	void TrySelectTileAndUnit(const FIntPoint& Index, const bool bForceUpdate = false);
-
+	/******************************************************************
+	 * Action Callbacks
+	 ******************************************************************/
 	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FPlayerGridActionDelegate OnSelectedActionsChanged;
 
@@ -67,6 +54,39 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	
+public:
+	/******************************************************************
+	 * Helpful getters and setters
+	 ******************************************************************/
+	APlayerGridActions();
+
+	FIntPoint GetHoveredTile() const { return HoveredTile; }
+	void SetHoveredTile(const FIntPoint& NewIndex) { HoveredTile = NewIndex; }
+	
+	FIntPoint GetSelectedTile() const { return SelectedTile; }
+	void SetSelectedTile(const FIntPoint& NewIndex) { SelectedTile = NewIndex; }
+
+	//ACombatGridUnit* GetHoveredUnit() const { return HoveredUnit; }
+	//ACombatGridUnit* GetSelectedUnit() const { return SelectedUnit; }
+
+	ACombatGridObject* GetHoveredGridObject() const { return HoveredGridObject; }
+	ACombatGridObject* GetSelectedGridObject() const { return SelectedGridObject; }
+
+	ACombatGrid* GetCombatGridReference() const { return GridReference; }
+	ACombatSystem* GetCombatSystemReference() const { return CombatSystemReference; }
+
+	
+
+	UFUNCTION(BlueprintCallable)
+	void SetSelectedActions(TSubclassOf<AGridAction> SelectedAction, TSubclassOf<AGridAction> DeselectedAction);
+
+	
+	void TrySelectTile(const FIntPoint& Index, const bool bForceUpdate = false);
+
+	
+
+
 
 private:
 	UPROPERTY()
@@ -82,15 +102,23 @@ private:
 	FIntPoint HoveredTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 	FIntPoint SelectedTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 
+	/*
 	UPROPERTY()
 	ACombatGridUnit* HoveredUnit = nullptr;
 	UPROPERTY()
 	ACombatGridUnit* SelectedUnit = nullptr;
+	*/
+
+	UPROPERTY()
+	ACombatGridObject* HoveredGridObject;
+	UPROPERTY()
+	ACombatGridObject* SelectedGridObject;
 
 	void UpdateTileUnderCursor();
-	void SelectTile(const FInputActionValue& Value);
-	void DeselectTile(const FInputActionValue& Value);
-	ACombatGridUnit* GetUnitUnderCursor();
+	void ExecuteLeftClickActionOnHoveredTile(const FInputActionValue& Value);
+	void ExecuteRightClickActionOnHoveredTile(const FInputActionValue& Value);
+	
+	//ACombatGridUnit* GetUnitUnderCursor();
 
 	AGridAction* TrySpawnGridAction(AGridAction*& ActionObject, TSubclassOf<AGridAction> ActionClass);
 
@@ -100,6 +128,6 @@ private:
 	UFUNCTION()
 	void OnTileDataUpdated(FIntPoint Index);
 
-	UFUNCTION()
-	void OnUnitGridIndexChanged(ACombatGridUnit* Unit);
+	//UFUNCTION()
+	//void OnUnitGridIndexChanged(ACombatGridUnit* Unit);
 };
