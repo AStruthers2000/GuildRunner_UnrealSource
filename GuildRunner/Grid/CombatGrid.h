@@ -109,7 +109,7 @@ public:
 	void ClearStateFromTiles(ETileState State);
 
 	UFUNCTION(BlueprintCallable)
-	TMap<FIntPoint, FTileData> GetGridTiles() const { return GridTiles; }
+	const TMap<FIntPoint, FTileData>& GetGridTiles() const { return GridTiles; }
 
 	//DANGEROUS FUNCTION, ALLOWS DIRECT MODIFICATION OF TILES IN GRID. ONLY USE IN EXTREME CASES
 	//TMap<FIntPoint, FTileData>* GetGridTilesRef() { return &GridTiles; }

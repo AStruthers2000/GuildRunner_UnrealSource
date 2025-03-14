@@ -151,9 +151,10 @@ void UCombatGridPathfinding::ExecuteAsyncPathfinding(const FIntPoint& StartTile,
 				continue;
 			}
 			
-			const auto NeighborInfo = GridReference->GetGridTiles().FindRef(NeighborIndex);
+			const auto NeighborInfo = GridReference->GetGridTiles().Find(NeighborIndex);
+			if (!NeighborInfo) continue;
 
-			int NewGCost = CurrentNode->GCost + CalculateCostToEnterTile(NeighborInfo);
+			int NewGCost = CurrentNode->GCost + CalculateCostToEnterTile(*NeighborInfo);
 
 			if (NewGCost <= Range)
 			{
@@ -375,7 +376,9 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetNeighborIndicesForTriangle(
 TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(
 	const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const
 {
-	const auto InputTile = GridReference->GetGridTiles().FindRef(Index);
+	const auto InputTile = GridReference->GetGridTiles().Find(Index);
+
+	if (!InputTile) return {};
 
 	// Store valid neighboring tiles
 	TArray<FPathfindingData> Neighbors;
@@ -384,11 +387,11 @@ TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(
 	for (const auto& Direction : AttemptedNeighbors)
 	{
 		const FIntPoint Neighbor = {Index.X + Direction.X, Index.Y + Direction.Y};
-		if (ValidateNeighborIndex(InputTile, Neighbor, ValidWalkableTiles))
+		if (ValidateNeighborIndex(*InputTile, Neighbor, ValidWalkableTiles))
 		{
 			FPathfindingData TempPathfindingData;
 			TempPathfindingData.Index = Neighbor;
-			TempPathfindingData.CostToEnterTile = CalculateCostToEnterTile(InputTile);
+			TempPathfindingData.CostToEnterTile = CalculateCostToEnterTile(*InputTile);
 			TempPathfindingData.PreviousTile = Index;
 			Neighbors.Add(TempPathfindingData);
 		}

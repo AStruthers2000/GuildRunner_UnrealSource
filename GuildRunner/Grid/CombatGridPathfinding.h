@@ -20,7 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, TArray<FIntPoint>, FullPath);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatReachableTilesCompletedDelegate, TArray<FIntPoint>, Reachables);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatReachableTilesCompletedDelegate, const TArray<FIntPoint>&, Reachables);
 
 struct FTileNode
 {

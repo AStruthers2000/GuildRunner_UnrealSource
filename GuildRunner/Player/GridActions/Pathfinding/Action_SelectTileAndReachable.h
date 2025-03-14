@@ -21,6 +21,8 @@ public:
 	UFUNCTION()
 	void GenerateReachables();
 
+	void Tick(float DeltaSeconds) override;
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIncludeDiagonals;
@@ -38,7 +40,13 @@ private:
 	float MaxMsPerFrame = 1.f;
 
 	UFUNCTION()
-	void OnPathfindingCompleted(TArray<FIntPoint> Path);
+	void OnPathfindingCompleted(const TArray<FIntPoint>& Path);
+
+	bool bAddingStateToTile = false;
+	TArray<FIntPoint> TilesToUpdateState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float m_FrameDelayForDrawingReachables = 0.333f;
 
 	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
 };
