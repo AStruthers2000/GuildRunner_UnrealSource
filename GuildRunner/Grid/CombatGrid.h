@@ -141,4 +141,16 @@ public:
 public:
 	UCombatGridPathfinding* GetGridPathfinding() const { return CombatGridPathfinding; }
 	bool IsTileWalkable(const FIntPoint& Index);
+
+	/******************************************************************
+	 * Grid Objects
+	 ******************************************************************/
+public:
+	/**
+	 * @brief Registers the unit with the grid, which will start the process of associating this unit with the specific
+	 *	tile it spawned on.
+	 * @param GridObject Grid object that will be placed onto the grid
+	 * @param Index Index of the tile that the grid object will specifically be added to
+	 */
+	void RegisterGridObjectWithTile(ACombatGridObject* GridObject, const FIntPoint& Index);
 };

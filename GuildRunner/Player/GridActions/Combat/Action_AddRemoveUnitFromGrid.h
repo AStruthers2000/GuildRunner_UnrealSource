@@ -31,4 +31,8 @@ private:
 	TMap<TEnumAsByte<EUnitType>, TSubclassOf<ACombatGridUnit>> UnitTypeMapping;
 
 	void RemoveUnitOnTile(const FIntPoint& TileIndex) const;
+
+	void SpawnUnit(const FIntPoint& TileIndex) const;
+	bool DoesTileContainUnitAlready(const FIntPoint& TileIndex) const;
 };
+

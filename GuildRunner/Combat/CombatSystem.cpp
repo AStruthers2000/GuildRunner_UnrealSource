@@ -24,9 +24,13 @@ void ACombatSystem::BeginPlay()
 void ACombatSystem::AddUnitInCombat(ACombatGridUnit* Unit, const FIntPoint Index)
 {
 	UnitsInCombat.Add(Unit);
-	SetUnitIndexOnGrid(Unit, Index);
-	Unit->SetGrid(ManagedGrid);
+	
+	ManagedGrid->RegisterGridObjectWithTile(Unit, Index);
 	Unit->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::ACombatSystem::OnUnitReachedNewTile);
+	
+	const auto* TargetTile = ManagedGrid->GetGridTiles().Find(Index);
+	const FVector TargetLocation = TargetTile ? TargetTile->Transform.GetLocation() : FVector(-999'999.f);
+	Unit->SetActorLocation(TargetLocation);
 }
 
 void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit)
@@ -83,6 +87,13 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& I
 	const FVector TargetLocation = TargetTile ? TargetTile->Transform.GetLocation() : FVector(-999'999.f);
 	Unit->SetActorLocation(TargetLocation);
 	*/
+}
+
+void ACombatSystem::PlaceUnitOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate)
+{
+	if (!Unit) return;
+
+	
 }
 
 void ACombatSystem::OnGridGenerated()

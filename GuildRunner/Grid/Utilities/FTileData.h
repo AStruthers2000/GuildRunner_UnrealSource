@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "ETileState.h"
 #include "ETileType.h"
+#include "GuildRunner/Grid/CombatGridObject.h"
 #include "FTileData.generated.h"
 
 
@@ -62,5 +63,17 @@ struct FTileData
 	{
 		if (ObjectsOnTile.IsEmpty()) return nullptr;
 		return ObjectsOnTile[IndexOfSelectedObject];
+	}
+
+	void AddObjectToTile(ACombatGridObject* Object)
+	{
+		ObjectsOnTile.Add(Object);
+		Object->SetIndexOnGrid(Index);
+	}
+
+	void RemoveObjectFromTile(ACombatGridObject* Object)
+	{
+		ObjectsOnTile.Remove(Object);
+		Object->SetIndexOnGrid(FPATHFINDINGDATA_DEFAULT_INDEX);
 	}
 };

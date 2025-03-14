@@ -61,11 +61,7 @@ public:
 
 	ACombatGridUnit();
 
-	UFUNCTION(BlueprintCallable)
-	void SetIndexOnGrid(const FIntPoint Index) { IndexOnGrid = Index; }
-
-	UFUNCTION(BlueprintCallable)
-	FIntPoint GetIndexOnGrid() const { return IndexOnGrid; }
+	
 
 	void SetUnitType(const TEnumAsByte<EUnitType> Type) { UnitType = Type; }
 
@@ -91,10 +87,7 @@ public:
 	//UFUNCTION(BlueprintImplementableEvent)
 	void UnitFollowPath(const TArray<FIntPoint>& TilesInPath);
 
-	UFUNCTION(BlueprintCallable)
-	const ACombatGrid* GetGrid() const { return GridReference; }
-
-	void SetGrid(ACombatGrid* Grid) { GridReference = Grid; }
+	
 	void SetMoveDurationPerTile(const float NewDuration) { MoveDurationPerTile = NewDuration; }
 
 protected:
@@ -104,8 +97,7 @@ protected:
 private:
 	void ConfigureUnitOnConstruct();
 
-	UPROPERTY(VisibleAnywhere)
-	FIntPoint IndexOnGrid = FPATHFINDINGDATA_DEFAULT_INDEX;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIsHovered;
@@ -119,8 +111,7 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SetUnitAnimationIndex(TEnumAsByte<EUnitAnimationState> AnimState);
 
-	UPROPERTY()
-	ACombatGrid* GridReference;
+	
 
 	FTimeline UnitMovementTimeline;
 

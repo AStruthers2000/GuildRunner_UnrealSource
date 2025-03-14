@@ -81,7 +81,7 @@ void ACombatGridUnit::BeginWalkingForward()
 {
 	SetUnitAnimationIndex(Walk);
 	PreviousTileTransform = GetActorTransform();
-	NextTileTransform = GridReference->GetGridTiles().Find(CurrentPathToFollow[0])->Transform;
+	NextTileTransform = GetGrid()->GetGridTiles().Find(CurrentPathToFollow[0])->Transform;
 	const auto LookAtRotation = UKismetMathLibrary::FindLookAtRotation(PreviousTileTransform.GetLocation(),
 	                                                                   NextTileTransform.GetLocation());
 	NextTileTransform.SetRotation(FRotator(0, LookAtRotation.Yaw, 0).Quaternion());

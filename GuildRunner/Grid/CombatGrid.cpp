@@ -4,6 +4,7 @@
 #include "CombatGrid.h"
 
 #include "CombatGridModifier.h"
+#include "CombatGridObject.h"
 #include "CombatGridPathfinding.h"
 #include "GridShapes/GridShapeUtilities.h"
 #include "GuildRunner/Utilities/GuildRunnerUtilities.h"
@@ -471,6 +472,9 @@ FIntPoint ACombatGrid::GetTileIndexUnderCursor(const int32 PlayerIndex)
 	return GetTileIndexFromWorldLocation(GetCursorLocationOnGrid(PlayerIndex));
 }
 
+/******************************************************************
+ * Pathfinding
+ ******************************************************************/
 bool ACombatGrid::IsTileWalkable(const FIntPoint& Index)
 {
 	const auto Tile = GridTiles.Find(Index);
@@ -480,4 +484,21 @@ bool ACombatGrid::IsTileWalkable(const FIntPoint& Index)
 	}
 
 	return UGridShapeUtilities::IsTileTypeWalkable(Tile->Type);
+}
+
+/******************************************************************
+ * Grid Objects
+ ******************************************************************/
+
+void ACombatGrid::RegisterGridObjectWithTile(ACombatGridObject* GridObject, const FIntPoint& Index)
+{
+	if (!GridObject) return;
+
+	GridObject->SetGrid(this);
+
+	auto* Tile = GridTiles.Find(Index);
+	if (Tile)
+	{
+		Tile->AddObjectToTile(GridObject);
+	}
 }
