@@ -20,10 +20,14 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetIndexOnGrid(const FIntPoint Index) { IndexOnGrid = Index; }
+
+	bool GetIsBlockingObject() const { return bBlockingObject; }
 	
 protected:
 	UFUNCTION(BlueprintCallable)
 	const ACombatGrid* GetGrid() const { return GridReference; }
+
+	void SetBlockingObject(bool BlockingObject) { bBlockingObject = BlockingObject; }
 
 private:
 	UPROPERTY()
@@ -31,4 +35,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	FIntPoint IndexOnGrid = FPATHFINDINGDATA_DEFAULT_INDEX;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bBlockingObject = false;
 };

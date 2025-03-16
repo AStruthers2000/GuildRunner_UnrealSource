@@ -6,6 +6,7 @@
 #include "CombatGridModifier.h"
 #include "CombatGridObject.h"
 #include "CombatGridPathfinding.h"
+#include "Algo/AnyOf.h"
 #include "GridShapes/GridShapeUtilities.h"
 #include "GuildRunner/Utilities/GuildRunnerUtilities.h"
 #include "Kismet/GameplayStatics.h"
@@ -502,3 +503,43 @@ void ACombatGrid::RegisterGridObjectWithTile(ACombatGridObject* GridObject, cons
 		Tile->AddObjectToTile(GridObject);
 	}
 }
+
+void ACombatGrid::UnregisterGridObjectWithTile(ACombatGridObject* GridObject)
+{
+	if (!GridObject) return;
+
+	const auto Index = GridObject->GetIndexOnGrid();
+	GridObject->SetGrid(nullptr);
+
+	auto* Tile = GridTiles.Find(Index);
+	if (Tile)
+	{
+		Tile->RemoveObjectFromTile(GridObject);
+	}
+}
+
+bool ACombatGrid::IsTileOccupiedByBlockingObject(const FIntPoint& Index)
+{
+	const auto Tile = GridTiles.Find(Index);
+	if (!Tile)
+	{
+		return false;
+	}
+
+	auto bIsAnyBlocking = Algo::AnyOf(Tile->ObjectsOnTile, [](const ACombatGridObject* Object)
+	{
+		return Object->GetIsBlockingObject();
+	});
+
+	return bIsAnyBlocking;
+}
+
+ACombatGridUnit* ACombatGrid::TryGetUnitOnTile(const FIntPoint& Index)
+{
+	const auto* Tile = GridTiles.Find(Index);
+	if (!Tile) return nullptr;
+
+	return Tile->TryGetUnitOnTile();
+}
+
+

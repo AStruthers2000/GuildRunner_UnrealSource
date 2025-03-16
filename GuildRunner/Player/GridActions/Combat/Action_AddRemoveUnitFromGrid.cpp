@@ -9,6 +9,8 @@ AAction_AddRemoveUnitFromGrid::AAction_AddRemoveUnitFromGrid()
 {
 }
 
+
+
 void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
@@ -16,66 +18,62 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 	{
 		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Action_AddRemoveUnitFromGrid::ExecuteGridAction:\tSorry, can't add units to the grid at this time\n"));
-
+	
 	if (bIsAddingUnit)
 	{
-		if (PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("I know you're trying to add a unit..."));
-			SpawnUnit(TileIndex);
-		}
-	}
-	/*
-	if (bIsAddingUnit)
-	{
-		if (PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex))
-		{
-			
-		}
+		AddUnitOnTile(TileIndex);
 	}
 	else
 	{
 		RemoveUnitOnTile(TileIndex);
 	}
-	*/
+}
+
+void AAction_AddRemoveUnitFromGrid::AddUnitOnTile(const FIntPoint& TileIndex) const
+{
+	bool bIsWalkable = PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex);
+	bool bIsOccupied = PlayerGridActions->GetCombatGridReference()->IsTileOccupiedByBlockingObject(TileIndex);
+	
+	if (bIsWalkable && !bIsOccupied)
+	{
+		if (auto* SpawnedUnit = SpawnUnit())
+		{
+			PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedUnit, TileIndex);
+		}
+	}
+	else
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Failed to spawn unit on this tile. Reason: IsWalkable: %hs, IsOccupied: %hs"),
+			bIsWalkable ? "true" : "false",
+			bIsOccupied ? "true" : "false");
+	}
 }
 
 void AAction_AddRemoveUnitFromGrid::RemoveUnitOnTile(const FIntPoint& TileIndex) const
 {
-	//const auto* ClickedTile = PlayerGridActions->GetCombatGridReference()->GetGridTiles().Find(TileIndex);
-	//if (ClickedTile && ClickedTile->UnitOnTile)
-	//{
-	//	PlayerGridActions->GetCombatSystemReference()->RemoveUnitInCombat(ClickedTile->UnitOnTile);
-	//}
+	PlayerGridActions->GetCombatSystemReference()->RemoveUnitFromTile(TileIndex);
 }
 
-/**
- * @brief Attempts to spawn unit on the clicked tile. Can fail if there's already a unit on this tile
- * 
- * @param TileIndex Index to spawn unit on
- */
-void AAction_AddRemoveUnitFromGrid::SpawnUnit(const FIntPoint& TileIndex) const
+
+ACombatGridUnit* AAction_AddRemoveUnitFromGrid::SpawnUnit() const
 {
-	if (DoesTileContainUnitAlready(TileIndex))
-	{
-		return;
-	}
-	
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParameters.bDeferConstruction = true;
 
+	ACombatGridUnit* SpawnedCombatUnit = nullptr;
+
 	if (UnitType != NoUnitSelected && UnitTypeMapping.Contains(UnitType))
 	{
 		const auto ClassToSpawn = UnitTypeMapping[UnitType];
-		if (auto* SpawnedCombatUnit = GetWorld()->SpawnActor<ACombatGridUnit>(
-			ClassToSpawn, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters))
+		SpawnedCombatUnit = GetWorld()->SpawnActor<ACombatGridUnit>(ClassToSpawn, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters);
+		if (SpawnedCombatUnit)
 		{
 			SpawnedCombatUnit->SetUnitType(UnitType);
 			SpawnedCombatUnit->DispatchBeginPlay();
-			PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedCombatUnit, TileIndex);
 		}
 	}
 
@@ -86,9 +84,6 @@ void AAction_AddRemoveUnitFromGrid::SpawnUnit(const FIntPoint& TileIndex) const
 				   "[AAction_AddRemoveUnitFromGrid::ExecuteGridAction]:\tNo mapping exists for adding unit of type %s"
 			   ), *UEnum::GetValueAsString(UnitType));
 	}
-}
 
-bool AAction_AddRemoveUnitFromGrid::DoesTileContainUnitAlready(const FIntPoint& TileIndex) const
-{
-	return false;
+	return SpawnedCombatUnit;
 }

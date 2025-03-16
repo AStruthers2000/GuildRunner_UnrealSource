@@ -33,15 +33,25 @@ void ACombatSystem::AddUnitInCombat(ACombatGridUnit* Unit, const FIntPoint Index
 	Unit->SetActorLocation(TargetLocation);
 }
 
-void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit)
+void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, const TOptional<bool>& bDestroyUnit)
 {
 	UnitsInCombat.Remove(Unit);
-	SetUnitIndexOnGrid(Unit, FPATHFINDINGDATA_DEFAULT_INDEX);
 
-	if (bDestroyUnit)
+	ManagedGrid->UnregisterGridObjectWithTile(Unit);
+
+	// if the optional isn't set, or if it is set and the value is set to true, we want to destroy unit
+	if (!bDestroyUnit.IsSet() || bDestroyUnit.GetValue())
 	{
 		Unit->Destroy();
 	}
+}
+
+void ACombatSystem::RemoveUnitFromTile(const FIntPoint& Index, const TOptional<bool>& bDestroyUnit)
+{
+	auto* Unit = ManagedGrid->TryGetUnitOnTile(Index);
+	if (!Unit) return;
+
+	RemoveUnitInCombat(Unit, bDestroyUnit);
 }
 
 void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate)

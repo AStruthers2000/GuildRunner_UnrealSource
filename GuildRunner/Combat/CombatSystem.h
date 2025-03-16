@@ -37,14 +37,27 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddUnitInCombat(ACombatGridUnit* Unit, FIntPoint Index);
 
-	UFUNCTION(BlueprintCallable)
-	void RemoveUnitInCombat(ACombatGridUnit* Unit, bool bDestroyUnit = true);
+	/**
+	 * @brief Removes this unit from combat and destroys this unit
+	 * @param Unit Unit to be destroyed
+	 * @param bDestroyUnit Optional variable to determine whether we want to call the unit's destructor. Default to true
+	 */
+	//UFUNCTION(BlueprintCallable)
+	void RemoveUnitInCombat(ACombatGridUnit* Unit, const TOptional<bool>& bDestroyUnit = true);
+
+	/**
+	 * @brief Tries to remove unit from the provided tile
+	 * @param Index Index of tile to attempt to remove unit from
+	 * @param bDestroyUnit Optional variable to determine whether we want to call the unit's destructor. Default to true
+	 */
+	void RemoveUnitFromTile(const FIntPoint& Index, const TOptional<bool>& bDestroyUnit = true);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ACombatGrid* ManagedGrid;
 
 	void SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate = false);
+	
 	/**
 	 * @brief Registers the unit with the grid, which will start the process of associating this unit with the specific
 	 *	tile it spawned on.

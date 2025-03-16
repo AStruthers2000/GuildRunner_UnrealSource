@@ -40,6 +40,8 @@ void ACombatGridUnit::ConfigureUnitOnConstruct()
 
 	UpdateVisualIfHoveredOrSelected();
 
+	SetBlockingObject(true);
+
 	UE_LOG(LogTemp, Display, TEXT("Spawning unit of type: %s"), *UEnum::GetDisplayValueAsText(UnitType).ToString());
 }
 

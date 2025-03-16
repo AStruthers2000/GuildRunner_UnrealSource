@@ -153,4 +153,25 @@ public:
 	 * @param Index Index of the tile that the grid object will specifically be added to
 	 */
 	void RegisterGridObjectWithTile(ACombatGridObject* GridObject, const FIntPoint& Index);
+	
+	/**
+	 * @brief Removes object from grid and tile it is on
+	 * @param GridObject Grid object to be unregistered and removed from grid
+	 */
+	void UnregisterGridObjectWithTile(ACombatGridObject* GridObject);
+
+	/**
+	 * @brief Checks to see if there is a blocking object on this tile. An example of a blocking object is a Unit.
+	 * @param Index Index of the tile that we are checking for a blocking object
+	 * @return true if there is an object on this tile that blocks navigation, false otherwise
+	 */
+	bool IsTileOccupiedByBlockingObject(const FIntPoint& Index);
+
+	/**
+	 * @brief Tries to find a valid unit object on the provided tile
+	 * @param Index Index to try and find a unit on
+	 * @return Pointer to the unit on the provided tile, nullptr if no valid unit is found on this tile
+	 */
+	ACombatGridUnit* TryGetUnitOnTile(const FIntPoint& Index);
+	
 };

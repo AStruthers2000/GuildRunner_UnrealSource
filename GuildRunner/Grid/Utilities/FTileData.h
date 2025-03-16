@@ -3,6 +3,7 @@
 #include "ETileState.h"
 #include "ETileType.h"
 #include "GuildRunner/Grid/CombatGridObject.h"
+#include "GuildRunner/Units/CombatGridUnit.h"
 #include "FTileData.generated.h"
 
 
@@ -75,5 +76,18 @@ struct FTileData
 	{
 		ObjectsOnTile.Remove(Object);
 		Object->SetIndexOnGrid(FPATHFINDINGDATA_DEFAULT_INDEX);
+	}
+	
+	ACombatGridUnit* TryGetUnitOnTile() const
+	{
+		if (ObjectsOnTile.IsEmpty()) return nullptr;
+		
+		for (const auto& Object : ObjectsOnTile)
+		{
+			auto* Unit = Cast<ACombatGridUnit>(Object);
+			if (Unit->IsValidLowLevel()) return Unit;
+		}
+
+		return nullptr;
 	}
 };
