@@ -13,9 +13,9 @@ class UCombatGridPathfinding;
 class UCombatGridVisualizer;
 class UDataTable;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileUpdateDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileUpdateDelegate, const FIntPoint&, Index);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileStateUpdateDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatGridTileStateUpdateDelegate, const FIntPoint&, Index);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatGridDestroyedDelegate);
 

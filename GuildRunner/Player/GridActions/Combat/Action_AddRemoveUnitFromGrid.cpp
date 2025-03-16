@@ -38,7 +38,7 @@ void AAction_AddRemoveUnitFromGrid::AddUnitOnTile(const FIntPoint& TileIndex) co
 	{
 		if (auto* SpawnedUnit = SpawnUnit())
 		{
-			PlayerGridActions->GetCombatSystemReference()->AddUnitInCombat(SpawnedUnit, TileIndex);
+			PlayerGridActions->GetCombatSystemReference()->AddObjectIntoCombat(SpawnedUnit, TileIndex);
 		}
 	}
 	else

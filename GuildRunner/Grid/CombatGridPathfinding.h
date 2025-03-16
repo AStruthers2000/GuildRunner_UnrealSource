@@ -14,11 +14,11 @@ class ACombatGrid;
 constexpr int32 COMBAT_GRID_NORMAL_COST = 10;
 constexpr int32 COMBAT_GRID_DIAG_COST = 4;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingDataUpdateDelegate, const FIntPoint&, Index);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCombatPathfindingDestroyedDelegate);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, TArray<FIntPoint>, FullPath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatPathfindingCompletedDelegate, const TArray<FIntPoint>&, FullPath);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatReachableTilesCompletedDelegate, const TArray<FIntPoint>&, Reachables);
 

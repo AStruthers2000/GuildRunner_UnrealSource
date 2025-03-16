@@ -81,7 +81,7 @@ void ADebugTileText::ClearAllTextActors()
 	SpawnedTexts.Empty();
 }
 
-void ADebugTileText::UpdateTextOnTile(const FIntPoint Index)
+void ADebugTileText::UpdateTextOnTile(const FIntPoint& Index)
 {
 	//if we don't have a grid reference or if we don't want to show tile text
 	if (!GridRef || !WantToDisplayAnyText())
@@ -181,7 +181,7 @@ void ADebugTileText::SetShowTileTexts(const bool bTileIndices, const bool bCostT
 	UpdateTextOnAllTiles();
 }
 
-void ADebugTileText::UpdateStateOnTile(FIntPoint Index)
+void ADebugTileText::UpdateStateOnTile(const FIntPoint& Index)
 {
 	if (bShowDiscoveredTiles)
 	{

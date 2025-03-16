@@ -45,7 +45,7 @@ void AAction_FindPathToTarget::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	ExecuteGridAction(FPATHFINDINGDATA_DEFAULT_INDEX);
 }
 
-void AAction_FindPathToTarget::OnPathfindingCompleted(TArray<FIntPoint> Path)
+void AAction_FindPathToTarget::OnPathfindingCompleted(const TArray<FIntPoint>& Path)
 {
 	for (auto& TileInPath : Path)
 	{
@@ -53,7 +53,7 @@ void AAction_FindPathToTarget::OnPathfindingCompleted(TArray<FIntPoint> Path)
 	}
 }
 
-void AAction_FindPathToTarget::OnSelectedTileChanged(FIntPoint Index)
+void AAction_FindPathToTarget::OnSelectedTileChanged(const FIntPoint& Index)
 {
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
 }

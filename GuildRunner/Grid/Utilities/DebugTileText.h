@@ -28,14 +28,14 @@ public:
 	void ClearAllTextActors();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateTextOnTile(FIntPoint Index);
+	void UpdateTextOnTile(const FIntPoint& Index);
 
 	UFUNCTION(BlueprintCallable)
 	void SetShowTileTexts(bool bTileIndices, bool bCostToEnterTile, bool bMinCostToTarget, bool bCostFromStart,
 	                      bool bSortOrder, bool bShowType);
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateStateOnTile(FIntPoint Index);
+	void UpdateStateOnTile(const FIntPoint& Index);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateStateOnAllTiles();

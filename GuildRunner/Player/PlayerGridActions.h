@@ -19,7 +19,7 @@ class ACombatGrid;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPlayerGridActionDelegate, AGridAction*, LeftClickAction, AGridAction*,
                                              RightClickAction);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerGridActionTileDelegate, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerGridActionTileDelegate, const FIntPoint&, Index);
 
 UCLASS()
 class GUILDRUNNER_API APlayerGridActions : public AActor
@@ -126,7 +126,7 @@ private:
 	void OnGridGenerated();
 
 	UFUNCTION()
-	void OnTileDataUpdated(FIntPoint Index);
+	void OnTileDataUpdated(const FIntPoint& Index);
 
 	//UFUNCTION()
 	//void OnUnitGridIndexChanged(ACombatGridUnit* Unit);

@@ -29,21 +29,19 @@ public:
 	virtual void BeginPlay() override;
 
 	/**
-	 * @brief Registers a unit in combat. This registration will include adding this unit to the objects on the provided
-	 *	tile.
-	 * @param Unit The unit to be registered in combat
-	 * @param Index The index the unit will spawn on/be registered to initially
+	 * @brief Registers an object in combat. This registration will include adding this object to the objects on the
+	 *	provided tile.
+	 * @param Object The object to be registered in combat
+	 * @param Index The index the object will spawn on/be registered to initially
 	 */
-	UFUNCTION(BlueprintCallable)
-	void AddUnitInCombat(ACombatGridUnit* Unit, FIntPoint Index);
+	void AddObjectIntoCombat(ACombatGridObject* Object, const FIntPoint& Index);
 
 	/**
-	 * @brief Removes this unit from combat and destroys this unit
-	 * @param Unit Unit to be destroyed
-	 * @param bDestroyUnit Optional variable to determine whether we want to call the unit's destructor. Default to true
+	 * @brief Removes this object from combat and destroys this object
+	 * @param Object Object to be destroyed
+	 * @param bDestroyUnit Optional variable to determine whether we want to call the object's destructor. Default to true
 	 */
-	//UFUNCTION(BlueprintCallable)
-	void RemoveUnitInCombat(ACombatGridUnit* Unit, const TOptional<bool>& bDestroyUnit = true);
+	void RemoveObjectFromCombat(ACombatGridObject* Object, const TOptional<bool>& bDestroyUnit = true);
 
 	/**
 	 * @brief Tries to remove unit from the provided tile
@@ -53,28 +51,54 @@ public:
 	void RemoveUnitFromTile(const FIntPoint& Index, const TOptional<bool>& bDestroyUnit = true);
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	ACombatGrid* ManagedGrid;
-
-	void SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate = false);
-	
 	/**
-	 * @brief Registers the unit with the grid, which will start the process of associating this unit with the specific
-	 *	tile it spawned on.
-	 * @param Unit Unit that will be placed onto the grid
-	 * @param Index Index of the tile that the unit will specifically be added to
-	 * @param bForceUpdate Force an update of the unit's position (probably need to remove this)
+	 * @brief Handles registration of the unit when the unit moves from tile it's currently on to the newly provided
+	 *	index. Also updates the unit's location when a valid move is being performed.
+	 * @param Object Unit being updated
+	 * @param Index New tile for unit to go to
+	 * @param bForceUpdate Optional parameter to force an update. Units only update if the index passed is different
+	 *	then the tile they're already on. Most of the time, this is fine, but when the grid or an individual tile
+	 *	regenerates, the index of the tile might still be valid, but it could have moved. For example, lets say there's
+	 *	a unit on index (0, 0). If the grid changes size, that index will still be valid, but will most likely have
+	 *	changed positions in the world. In this case, the unit thinks it's still standing on index (0, 0), and the grid
+	 *	still thinks that this unit is standing on (0, 0), so the tile index hasn't changed. However, there's now a
+	 *	desync between the location of the unit and the location of the tile, so we want to force an update.
 	 */
-	void PlaceUnitOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate = false);
+	void SetUnitIndexOnGrid(ACombatGridObject* Object, const FIntPoint& Index, const TOptional<bool>& bForceUpdate = false) const;
 
-	TArray<ACombatGridUnit*> UnitsInCombat;
+	/**
+	 * @brief Moves the provided unit to the new tile.
+	 * @param Unit Unit that will be moved
+	 * @param Index Index of the unit's new tile
+	 */
+	void UpdateUnitLocation(ACombatGridObject* Unit, const FIntPoint& Index) const;
 
+	/**
+	 * @brief Helper function for updating the unit properly when a new grid is generated or the tile is updated
+	 * @param Unit Unit to be updated according to newly generated grid or updated tile
+	 * @param bForceUpdate Whether we want to force an update on this unit. Defaults to false
+	 */
+	void UpdateUnitOnTileGeneration(ACombatGridObject* const& Unit, const TOptional<bool>& bForceUpdate = false);
+
+	/**
+	 * @brief Updates all objects that this system is managing. Possibly destructive operation for ObjectsInCombat
+	 */
 	UFUNCTION()
 	void OnGridGenerated();
 
+	/**
+	 * @brief Updates all objects on provided tile. Possibly destructive operation for ObjectsInCombat
+	 * @param Index Index of tile that was updated by the grid
+	 */
 	UFUNCTION()
-	void OnTileDataUpdated(FIntPoint Index);
+	void OnTileDataUpdated(const FIntPoint& Index);
 
 	UFUNCTION()
-	void OnUnitReachedNewTile(ACombatGridUnit* Unit, FIntPoint Index);
+	void OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint& Index);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	ACombatGrid* ManagedGrid;
+	
+	UPROPERTY()
+	TArray<ACombatGridObject*> ObjectsInCombat;
 };

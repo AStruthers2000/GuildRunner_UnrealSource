@@ -12,7 +12,7 @@
 #include "Utilities/FCombatGridUnitData.h"
 #include "CombatGridUnit.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitReachedNewTile, ACombatGridUnit*, Unit, FIntPoint, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitReachedNewTile, ACombatGridUnit*, Unit, const FIntPoint&, Index);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatUnitFinishedWalking, ACombatGridUnit*, Unit);
 

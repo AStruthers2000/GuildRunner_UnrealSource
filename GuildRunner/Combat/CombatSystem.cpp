@@ -3,6 +3,7 @@
 
 #include "CombatSystem.h"
 
+#include "Algo/ForEach.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "GuildRunner/Units/CombatGridUnit.h"
 
@@ -21,28 +22,32 @@ void ACombatSystem::BeginPlay()
 	ManagedGrid->OnTileDataUpdated.AddDynamic(this, &ACombatSystem::OnTileDataUpdated);
 }
 
-void ACombatSystem::AddUnitInCombat(ACombatGridUnit* Unit, const FIntPoint Index)
+
+
+void ACombatSystem::AddObjectIntoCombat(ACombatGridObject* Object, const FIntPoint& Index)
 {
-	UnitsInCombat.Add(Unit);
+	ObjectsInCombat.Add(Object);
 	
-	ManagedGrid->RegisterGridObjectWithTile(Unit, Index);
-	Unit->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::ACombatSystem::OnUnitReachedNewTile);
+	ManagedGrid->RegisterGridObjectWithTile(Object, Index);
+
+	if (auto* Unit = Cast<ACombatGridUnit>(Object))
+	{
+		Unit->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::ACombatSystem::OnUnitReachedNewTile);
+	}
 	
-	const auto* TargetTile = ManagedGrid->GetGridTiles().Find(Index);
-	const FVector TargetLocation = TargetTile ? TargetTile->Transform.GetLocation() : FVector(-999'999.f);
-	Unit->SetActorLocation(TargetLocation);
+	UpdateUnitLocation(Object, Index);
 }
 
-void ACombatSystem::RemoveUnitInCombat(ACombatGridUnit* Unit, const TOptional<bool>& bDestroyUnit)
+void ACombatSystem::RemoveObjectFromCombat(ACombatGridObject* Object, const TOptional<bool>& bDestroyUnit)
 {
-	UnitsInCombat.Remove(Unit);
+	ObjectsInCombat.Remove(Object);
 
-	ManagedGrid->UnregisterGridObjectWithTile(Unit);
+	ManagedGrid->UnregisterGridObjectWithTile(Object);
 
 	// if the optional isn't set, or if it is set and the value is set to true, we want to destroy unit
 	if (!bDestroyUnit.IsSet() || bDestroyUnit.GetValue())
 	{
-		Unit->Destroy();
+		Object->Destroy();
 	}
 }
 
@@ -51,101 +56,77 @@ void ACombatSystem::RemoveUnitFromTile(const FIntPoint& Index, const TOptional<b
 	auto* Unit = ManagedGrid->TryGetUnitOnTile(Index);
 	if (!Unit) return;
 
-	RemoveUnitInCombat(Unit, bDestroyUnit);
+	RemoveObjectFromCombat(Unit, bDestroyUnit);
 }
 
-void ACombatSystem::SetUnitIndexOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate)
+void ACombatSystem::SetUnitIndexOnGrid(ACombatGridObject* Object, const FIntPoint& Index, const TOptional<bool>& bForceUpdate) const
 {
-	if (!Unit)
+	if (!Object)
 	{
 		return;
 	}
 
-	/*
-	//if the unit's index is already the index we want, we don't want to move the unit
-	if (Unit->GetIndexOnGrid() != Index || bForceUpdate)
+	// if the unit's index is already the index we want, we don't want to move the unit
+	if (Object->GetIndexOnGrid() != Index || bForceUpdate)
 	{
-		//remove the unit from the previous tile
-		auto* PreviousTile = ManagedGrid->GetGridTiles().Find(Unit->GetIndexOnGrid());
-		if (PreviousTile && PreviousTile->UnitOnTile == Unit)
-		{
-			//DANGEROUS MODIFICATION OF TILES ON GRID DIRECTLY!!!! THIS IS PROBABLY BAD TO DO
-			//BUT WHEN COPYING THE TILE AND THEN UPDATING IT IN THE KEY, THE STATES ARRAY GETS
-			//CORRUPTED. TO WORK AROUND THIS, WE DIRECTLY MODIFY THE TILE. DON'T MAKE A HABIT OF THIS!
-			ManagedGrid->GetGridTilesRef()->Find(Unit->GetIndexOnGrid())->UnitOnTile = nullptr;
-		}
+		// remove the unit from the tile it's currently on
+		ManagedGrid->UnregisterGridObjectWithTile(Object);
 
-		//add unit to the new tile
-		Unit->SetIndexOnGrid(Index);
-		if (Index != FIntPoint(FPATHFINDINGDATA_DEFAULT_INDEX))
-		{
-			auto* NextTile = ManagedGrid->GetGridTiles().Find(Index);
-			if (NextTile)
-			{
-				//DANGEROUS MODIFICATION OF TILES ON GRID DIRECTLY!!!! THIS IS PROBABLY BAD TO DO
-				//BUT WHEN COPYING THE TILE AND THEN UPDATING IT IN THE KEY, THE STATES ARRAY GETS
-				//CORRUPTED. TO WORK AROUND THIS, WE DIRECTLY MODIFY THE TILE. DON'T MAKE A HABIT OF THIS!
-				ManagedGrid->GetGridTilesRef()->Find(Index)->UnitOnTile = Unit;
-			}
-		}
+		// add unit to new tile
+		ManagedGrid->RegisterGridObjectWithTile(Object, Index);
 
-		OnGridUnitIndexChanged.Broadcast(Unit);
+		// move unit to new tile
+		UpdateUnitLocation(Object, Index);
+
+		if (auto* Unit = Cast<ACombatGridUnit>(Object))
+		{
+			OnGridUnitIndexChanged.Broadcast(Unit);
+		}
 	}
+}
 
-	//move tile to new location
+void ACombatSystem::UpdateUnitLocation(ACombatGridObject* Unit, const FIntPoint& Index) const
+{
 	const auto* TargetTile = ManagedGrid->GetGridTiles().Find(Index);
 	const FVector TargetLocation = TargetTile ? TargetTile->Transform.GetLocation() : FVector(-999'999.f);
 	Unit->SetActorLocation(TargetLocation);
-	*/
 }
 
-void ACombatSystem::PlaceUnitOnGrid(ACombatGridUnit* Unit, const FIntPoint& Index, const bool bForceUpdate)
+void ACombatSystem::UpdateUnitOnTileGeneration(ACombatGridObject* const& Unit, const TOptional<bool>& bForceUpdate)
 {
-	if (!Unit) return;
-
-	
+	// does the tile still exist/is tile still walkable
+	if (ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
+	{
+		SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid(), true);
+	}
+	else
+	{
+		RemoveObjectFromCombat(Unit);
+	}
 }
 
 void ACombatSystem::OnGridGenerated()
 {
-	auto Temp_UnitsInCombat = UnitsInCombat;
-	for (const auto& Unit : Temp_UnitsInCombat)
+	auto Temp_ObjectsInCombat = ObjectsInCombat;
+	for (const auto& Unit : Temp_ObjectsInCombat)
 	{
-		//does the tile still exist/is tile still walkable
-		if (ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
-		{
-			SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid(), true);
-		}
-		else
-		{
-			RemoveUnitInCombat(Unit);
-		}
+		UpdateUnitOnTileGeneration(Unit, true);
 	}
 }
 
-void ACombatSystem::OnTileDataUpdated(FIntPoint Index)
+void ACombatSystem::OnTileDataUpdated(const FIntPoint& Index)
 {
-	auto Temp_UnitsInCombat = UnitsInCombat;
-	for (const auto& Unit : Temp_UnitsInCombat)
+	auto* Tile = ManagedGrid->GetGridTiles().Find(Index);
+	if (!Tile) return;
+	
+	auto& Temp_ObjectsOnTile = Tile->ObjectsOnTile;
+	for (const auto& Unit : Temp_ObjectsOnTile)
 	{
-		if (Unit->GetIndexOnGrid() == Index)
-		{
-			//does the tile still exist/is tile still walkable
-			if (ManagedGrid->IsTileWalkable(Unit->GetIndexOnGrid()))
-			{
-				SetUnitIndexOnGrid(Unit, Unit->GetIndexOnGrid());
-				break;
-			}
-			else
-			{
-				RemoveUnitInCombat(Unit);
-				break;
-			}
-		}
+		UpdateUnitOnTileGeneration(Unit);
 	}
 }
 
-void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, FIntPoint Index)
+void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint& Index)
 {
 	//Could also use this function to add some verification that the unit actually reached the new tile
 	//or to check if the unit stepped on some traps, etc.

@@ -22,7 +22,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
-	void OnPathfindingCompleted(TArray<FIntPoint> Path);
+	void OnPathfindingCompleted(const TArray<FIntPoint>& Path);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -43,7 +43,7 @@ private:
 	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
 
 	UFUNCTION()
-	void OnSelectedTileChanged(FIntPoint Index);
+	void OnSelectedTileChanged(const FIntPoint& Index);
 
 	TArray<FIntPoint> ReachableTiles;
 };

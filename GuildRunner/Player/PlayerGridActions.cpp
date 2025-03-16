@@ -272,7 +272,7 @@ void APlayerGridActions::OnGridGenerated()
 	}
 }
 
-void APlayerGridActions::OnTileDataUpdated(FIntPoint Index)
+void APlayerGridActions::OnTileDataUpdated(const FIntPoint& Index)
 {
 	if (Index == SelectedTile)
 	{
