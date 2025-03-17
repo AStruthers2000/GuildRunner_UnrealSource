@@ -16,27 +16,29 @@ class GUILDRUNNER_API UCombatGridMeshInstance : public USceneComponent
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh", meta = (AllowPrivateAccess = "true"))
 	UInstancedStaticMeshComponent* InstancedMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-		meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
 	FLinearColor SelectedColor = FLinearColor(0.392157, 0.094118, 0, 1);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-		meta = (AllowPrivateAccess = "true"))
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
 	FLinearColor HoveredColor = FLinearColor(1.0, 0.87450980392156862745098039215686, 0, 1);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-		meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
 	FLinearColor NeighborColor = FLinearColor(243.f / 255.f, 58.f / 255.f, 106.f / 255.f, 1);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-		meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
 	FLinearColor InPathColor = FLinearColor(75.f / 255.f, 249.f / 255.f, 1, 1);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-		meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
+	FLinearColor PathfindingTargetColor = FLinearColor(75.f / 255.f, 254.f / 255.f, 30.f / 255.f, 1);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
 	FLinearColor DiscoveredColor = FLinearColor(250.f / 255.f, 128.f / 255.f, 114.f / 255.f, 1);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-		meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
 	FLinearColor AnalyzedColor = FLinearColor(1, 0, 125.f / 255.f, 1);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States",
-    		meta = (AllowPrivateAccess = "true"))
-    	FLinearColor ReachableColor = FLinearColor(111.f / 255.f, 143.f / 255.f, 175.f / 255.f, 1);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|States", meta = (AllowPrivateAccess = "true"))
+	FLinearColor ReachableColor = FLinearColor(111.f / 255.f, 143.f / 255.f, 175.f / 255.f, 1);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|GridMesh|Colors|TileTypes",
 		meta = (AllowPrivateAccess = "true"))

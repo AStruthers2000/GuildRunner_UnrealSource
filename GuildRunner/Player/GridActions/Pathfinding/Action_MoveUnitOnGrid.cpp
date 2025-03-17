@@ -22,13 +22,14 @@ void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 	}
 
 	CurrentUnit = Cast<ACombatGridUnit>(PlayerGridActions->GetSelectedGridObject());
-	if (!CurrentUnit)
+	if (!CurrentUnit || CurrentUnit->GetCombatGridUnitMovement()->IsUnitCurrentlyMoving())
 	{
 		return;
 	}
 
 	//TODO: possibly refactor to instead have IsInPath be incremented and decremented for every unit moving 
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath); 
+	//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+	//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(PathfindingTarget);
 
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(
 		this, &AAction_MoveUnitOnGrid::OnPathfindingCompleted);
@@ -37,13 +38,14 @@ void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 
 	const auto bMoveDiagonal = CurrentUnit->GetUnitData().Stats.bCanMoveDiagonally;
 	const auto ValidTileTypes = CurrentUnit->GetUnitData().Stats.ValidTileTypes;
+	const auto MovementPoints = CurrentUnit->GetUnitData().Stats.MovementPoints;
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
 		PlayerGridActions->GetSelectedTile(),
 		TileIndex,
 		bMoveDiagonal,
 		false,
 		ValidTileTypes,
-		10);
+		MovementPoints);
 }
 
 
@@ -63,18 +65,29 @@ void AAction_MoveUnitOnGrid::OnPathfindingCompleted(const TArray<FIntPoint>& Pat
 	
 	for (auto& TileInPath : Path)
 	{
-		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsInPath);
+		PlayerGridActions->GetCombatGridReference()->IncrementTimesTileIsInPath(TileInPath);
 	}
+	
+	if (Path.Num() > 0)
+	{
+		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), PathfindingTarget);
+	}
+	
 	CurrentUnit->GetCombatGridUnitMovement()->SetMoveDurationPerTile(MoveDurationPerTile);
 	CurrentUnit->GetCombatGridUnitMovement()->UnitFollowPath(Path);
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
 	PlayerGridActions->DeselectCurrentTile();
 	PlayerGridActions->DeselectCurrentObject();
 }
 
 void AAction_MoveUnitOnGrid::OnUnitFinishedWalking(ACombatGridUnit* Unit)
 {
-	if (Unit == CurrentUnit)
-	{
-		PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
-	}
+	//if (Unit == CurrentUnit)
+	//{
+		//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+		//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(PathfindingTarget);
+	//}
+
+	// PlayerGridActions->GetCombatGridReference()->DecrementTimesTileIsInPath(Unit->GetIndexOnGrid());
+	// PlayerGridActions->GetCombatGridReference()->RemoveStateFromTile(Unit->GetIndexOnGrid(), PathfindingTarget);
 }

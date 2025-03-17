@@ -46,6 +46,8 @@ void UCombatGridUnitMovement::UnitFollowPath(const TArray<FIntPoint>& TilesInPat
 	if (TilesInPath.Num() > 0)
 	{
 		CurrentPathToFollow = TilesInPath;
+		OnCombatUnitStartedMovingToTargetTile.Broadcast(MyUnit, TilesInPath.Last());
+		bCurrentlyMoving = true;
 		BeginWalkingForward();
 	}
 }
@@ -55,14 +57,14 @@ void UCombatGridUnitMovement::BeginWalkingForward()
 {
 	// if we have one more tile to move to, and we can't move there because another unit got there first, we want to
 	// end the movement early
-	if (CurrentPathToFollow.Num() == 1)
-	{
-		if (!CanUnitMoveToFinalTile())
-		{
-			AdvancePath();
-			return;
-		}
-	}
+	// if (CurrentPathToFollow.Num() == 1)
+	// {
+	// 	if (!CanUnitMoveToFinalTile())
+	// 	{
+	// 		AdvancePath();
+	// 		return;
+	// 	}
+	// }
 
 	OnCombatUnitStartedMovingToNewTile.Broadcast(MyUnit, CurrentPathToFollow[0]);
 	
@@ -87,8 +89,10 @@ void UCombatGridUnitMovement::ContinueToFollowPath()
 	else
 	{
 		MyUnit->SetUnitAnimationIndex(Idle);
+		
 		OnCombatUnitFinishedWalking.Broadcast(MyUnit);
 		EndPathfindingRotation = MyUnit->GetActorTransform().GetRotation().Rotator();
+		bCurrentlyMoving = false;
 	}
 }
 

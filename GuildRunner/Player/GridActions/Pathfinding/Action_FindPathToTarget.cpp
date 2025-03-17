@@ -27,7 +27,8 @@ void AAction_FindPathToTarget::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+	//PlayerGridActions->GetCombatGridReference()->DecrementTimesTileIsInPath(IsInPath);
+	//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(PathfindingTarget);
 
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(
 		this, &AAction_FindPathToTarget::OnPathfindingCompleted);
@@ -49,13 +50,19 @@ void AAction_FindPathToTarget::OnPathfindingCompleted(const TArray<FIntPoint>& P
 {
 	for (auto& TileInPath : Path)
 	{
-		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsInPath);
+		PlayerGridActions->GetCombatGridReference()->IncrementTimesTileIsInPath(TileInPath);
+	}
+
+	if (Path.Num() > 0)
+	{
+		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), PathfindingTarget);
 	}
 }
 
 void AAction_FindPathToTarget::OnSelectedTileChanged(const FIntPoint& Index)
 {
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+	//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+	//PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(PathfindingTarget);
 }
 
 

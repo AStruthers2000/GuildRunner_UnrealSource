@@ -94,6 +94,15 @@ private:
 	void OnTileDataUpdated(const FIntPoint& Index);
 
 	/**
+	 * @brief Called once at the beginning of unit movement, right after OnPathfindingComplete, that will pass the unit
+	 *	and this unit's target tile for immediate registration purposes
+	 * @param Unit Unit that is moving to target tile
+	 * @param Index Index of target tile
+	 */
+	UFUNCTION()
+	void OnUnitStartedMovingToTargetTile(ACombatGridUnit* Unit, const FIntPoint& Index);
+
+	/**
 	 * @brief Called as soon as the unit starts moving to the new tile. This handles the registration of the unit on
 	 *	the appropriate tile. For units to stay synchronized and not end up stepping on the same tile, the registration
 	 *	has to happen as soon as the unit starts moving, not when the unit finishes moving
@@ -112,10 +121,19 @@ private:
 	UFUNCTION()
 	void OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint& Index);
 
+	/**
+	 * @brief Called once at the end of unit movement
+	 * @param Unit Unit that finished pathfinding
+	 * @param Index Index of unit at the end of pathfinding
+	 */
+	UFUNCTION()
+	void OnUnitFinishedPathfinding(ACombatGridUnit* Unit, const FIntPoint& Index);
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ACombatGrid* ManagedGrid;
 	
 	UPROPERTY()
 	TArray<ACombatGridObject*> ObjectsInCombat;
 };
+
 

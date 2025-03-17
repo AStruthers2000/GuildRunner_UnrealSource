@@ -33,6 +33,9 @@ struct FTileData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 IndexOfSelectedObject = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 TimesTileIsInPath = 0;
+
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	//ACombatGridUnit* UnitOnTile;
 
@@ -64,6 +67,17 @@ struct FTileData
 	{
 		if (ObjectsOnTile.IsEmpty()) return nullptr;
 		return ObjectsOnTile[IndexOfSelectedObject];
+	}
+
+	void IncrementTimesInPath()
+	{
+		TimesTileIsInPath++;
+	}
+
+	void DecrementTimesInPath()
+	{
+		TimesTileIsInPath--;
+		if (TimesTileIsInPath < 0) TimesTileIsInPath = 0;
 	}
 
 	void AddObjectToTile(ACombatGridObject* Object)

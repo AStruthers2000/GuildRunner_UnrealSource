@@ -11,6 +11,7 @@ class ACombatGridUnit;
 class ACombatGrid;
 class UCurveVector;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitStartedMovingToTargetTile, ACombatGridUnit*, Unit, const FIntPoint&, Index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitStartedMovingToNewTile, ACombatGridUnit*, Unit, const FIntPoint&, Index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitReachedNewTile, ACombatGridUnit*, Unit, const FIntPoint&, Index);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatUnitFinishedWalking, ACombatGridUnit*, Unit);
@@ -36,6 +37,9 @@ public:
 	 * Grid Callbacks
 	 ******************************************************************/
 	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FCombatUnitStartedMovingToTargetTile OnCombatUnitStartedMovingToTargetTile;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Test")
 	FCombatUnitStartedMovingToNewTile OnCombatUnitStartedMovingToNewTile;
 	
 	UPROPERTY(BlueprintAssignable, Category = "Test")
@@ -46,7 +50,8 @@ public:
 
 	UCombatGridUnitMovement();
 	friend ACombatGridUnit;
-	
+
+	bool IsUnitCurrentlyMoving() const { return bCurrentlyMoving; }
 	void UnitFollowPath(const TArray<FIntPoint>& TilesInPath);
 	void SetMoveDurationPerTile(const float NewDuration) { MoveDurationPerTile = NewDuration; }
 
@@ -73,6 +78,7 @@ private:
 	UFUNCTION()
 	void OnTimelineFinished();
 
+	bool bCurrentlyMoving = false;
 	FRotator EndPathfindingRotation;
 	FTransform PreviousTileTransform;
 	FTransform NextTileTransform;

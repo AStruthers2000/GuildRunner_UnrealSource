@@ -24,13 +24,37 @@ void AAction_SelectTileAndReachable::GenerateReachables()
 		return;
 	}
 
+	bool bUnitReachables = true;
+	auto* SelectedUnit = Cast<ACombatGridUnit>(PlayerGridActions->GetSelectedGridObject());
+	if (!SelectedUnit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Selected Grid Object is null or not a unit, using default values"));
+		bUnitReachables = false;
+	}
+
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
 
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnReachableTilesCompleted.AddDynamic(
 		this, &AAction_SelectTileAndReachable::OnPathfindingCompleted);
 
+	bool bMoveDiagonal = bIncludeDiagonals;
+	auto ValidTileTypes = GetValidWalkingTiles();
+	int32 MovementLength = MaxPathLength;
+	
+	if (bUnitReachables)
+	{
+		bMoveDiagonal = SelectedUnit->GetUnitData().Stats.bCanMoveDiagonally;
+		ValidTileTypes = SelectedUnit->GetUnitData().Stats.ValidTileTypes;
+		MovementLength = SelectedUnit->GetUnitData().Stats.MovementPoints;
+	}
+
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
-		PlayerGridActions->GetSelectedTile(), FPATHFINDINGDATA_DEFAULT_INDEX, bIncludeDiagonals, true, GetValidWalkingTiles(), MaxPathLength);
+		PlayerGridActions->GetSelectedTile(),
+		FPATHFINDINGDATA_DEFAULT_INDEX,
+		bMoveDiagonal,
+		true,
+		ValidTileTypes,
+		MovementLength);
 }
 
 /**

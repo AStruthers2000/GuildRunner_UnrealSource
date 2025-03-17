@@ -33,6 +33,7 @@ void ACombatSystem::AddObjectIntoCombat(ACombatGridObject* Object, const FIntPoi
 
 	if (auto* Unit = Cast<ACombatGridUnit>(Object))
 	{
+		Unit->GetCombatGridUnitMovement()->OnCombatUnitStartedMovingToTargetTile.AddDynamic(this, &ACombatSystem::OnUnitStartedMovingToTargetTile);
 		Unit->GetCombatGridUnitMovement()->OnCombatUnitStartedMovingToNewTile.AddDynamic(this, &ACombatSystem::OnUnitStartedMovingToNewTile);
 		Unit->GetCombatGridUnitMovement()->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::OnUnitReachedNewTile);
 	}
@@ -125,16 +126,39 @@ void ACombatSystem::OnTileDataUpdated(const FIntPoint& Index)
 	}
 }
 
-void ACombatSystem::OnUnitStartedMovingToNewTile(ACombatGridUnit* Unit, const FIntPoint& Index)
+void ACombatSystem::OnUnitStartedMovingToTargetTile(ACombatGridUnit* Unit, const FIntPoint& Index)
 {
 	SetUnitIndexOnGrid(Unit, Index);
+}
+
+void ACombatSystem::OnUnitStartedMovingToNewTile(ACombatGridUnit* Unit, const FIntPoint& Index)
+{
+	//auto CurrentIndex = Unit->GetIndexOnGrid();
+	//ManagedGrid->DecrementTimesTileIsInPath(CurrentIndex);
+	//ManagedGrid->DecrementTimesTileIsInPath(Index);
+	//SetUnitIndexOnGrid(Unit, Index);
 }
 
 void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint& Index)
 {
 	//Could also use this function to add some verification that the unit actually reached the new tile
 	//or to check if the unit stepped on some traps, etc.
+	// TODO: if something stopped my movement, unregister myself from the target and register myself at current
+	/*if (I am no longer moving due to some trap that triggered when I visually arrived at this tile)
+	{
+		SetUnitIndexOnGrid(Unit, Index);
+		Somehow stop unit pathfinding from happening
+	}*/
+	
+
+	ManagedGrid->DecrementTimesTileIsInPath(Index);
 	
 	// move unit to new tile
 	UpdateUnitLocation(Unit, Index);
+}
+
+void ACombatSystem::OnUnitFinishedPathfinding(ACombatGridUnit* Unit, const FIntPoint& Index)
+{
+	ManagedGrid->DecrementTimesTileIsInPath(Index);
+	ManagedGrid->RemoveStateFromTile(Index, PathfindingTarget);
 }

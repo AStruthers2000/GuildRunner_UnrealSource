@@ -12,5 +12,6 @@ enum ETileState : uint8
 	IsInPath,
 	IsDiscovered,
 	IsAnalyzed,
-	IsReachable
+	IsReachable,
+	PathfindingTarget
 };
