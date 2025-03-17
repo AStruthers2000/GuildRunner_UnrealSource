@@ -3,10 +3,8 @@
 
 #include "TileSelectionManager.h"
 
-#include "GroomVisualizationData.h"
 #include "PlayerGridActions.h"
 #include "GuildRunner/Grid/CombatGrid.h"
-#include "Kismet/GameplayStatics.h"
 
 UTileSelectionManager::UTileSelectionManager()
 {
@@ -18,37 +16,6 @@ void UTileSelectionManager::UpdateTileUnderCursor()
 	{
 		return;
 	}
-
-	// auto* ObjectUnderCursor = GetGridObjectUnderCursor();
-	// if (ObjectUnderCursor != HoveredGridObject)
-	// {
-	// 	//set the old unit as no longer hovered
-	// 	if (HoveredGridObject)
-	// 	{
-	// 		HoveredGridObject->SetIsHovered(false);
-	// 	}
-	//
-	// 	//update unit reference and set current unit to hovered
-	// 	HoveredGridObject = ObjectUnderCursor;
-	// 	if (HoveredGridObject)
-	// 	{
-	// 		HoveredGridObject->SetIsHovered(true);
-	// 	}
-	// }
-
-	// FIntPoint NewTileIndex;
-	// if (HoveredGridObject)
-	// {
-	// 	// units are sometimes taller than the tile they're standing on (if we are pointing the mouse at the "head" of a
-	// 	// unit, the cursor might be intersecting with the tile "behind" the unit, not the tile the unit is on
-	// 	// effectively, if the mouse raycast hits a unit before it hits the ground, we want to hover on the tile the
-	// 	// unit is on, not the tile that the mouse raycast would actually hit
-	// 	NewTileIndex = HoveredGridObject->GetIndexOnGrid();
-	// }
-	// else
-	// {
-	// 	NewTileIndex = GridReference->GetTileIndexUnderCursor(0);
-	// }
 
 	FIntPoint NewTileIndex = GridReference->GetTileIndexUnderCursor(0);
 	if (HoveredTile != NewTileIndex)
@@ -157,24 +124,3 @@ void UTileSelectionManager::OnTileDataUpdated(const FIntPoint& Index)
 //	}
 //}
 
-// ACombatGridObject* UTileSelectionManager::GetGridObjectUnderCursor() const
-// {
-// 	const auto* PC = UGameplayStatics::GetPlayerController(GridReference, 0);
-// 	
-// 	FHitResult OutHit;
-// 	if (PC->GetHitResultUnderCursor(ECC_GameTraceChannel3, false, OutHit))
-// 	{
-// 		if (auto* HitActor = Cast<ACombatGridObject>(OutHit.GetActor()))
-// 		{
-// 			return HitActor;
-// 		}
-// 	}
-//
-// 	const auto Index = GridReference->GetTileIndexUnderCursor(0);
-// 	if (auto* Tile = GridReference->GetGridTiles().Find(Index))
-// 	{
-// 		return Tile->GetSelectedItem();
-// 	}
-// 	
-// 	return nullptr;
-// }

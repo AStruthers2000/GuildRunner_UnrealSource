@@ -22,7 +22,6 @@ public:
 	friend APlayerGridActions;
 
 	FIntPoint GetHoveredTile() const { return HoveredTile; }
-	ACombatGridObject* GetHoveredGridObject() const { return HoveredGridObject; }
 	
 	FIntPoint GetSelectedTile() const { return SelectedTile; }
 	ACombatGridObject* GetSelectedGridObject() const { return SelectedGridObject; }
@@ -51,8 +50,6 @@ private:
 	void SetGridReference(ACombatGrid* Grid) { GridReference = Grid; }
 	void SetPlayerGridActionsReference(APlayerGridActions* PlayerActions) { PlayerGridActions = PlayerActions; }
 
-	// ACombatGridObject* GetGridObjectUnderCursor() const;
-
 	//UFUNCTION()
 	//void OnUnitGridIndexChanged(ACombatGridUnit* Unit);
 
@@ -65,8 +62,6 @@ private:
 	FIntPoint HoveredTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 	FIntPoint SelectedTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 
-	UPROPERTY()
-	ACombatGridObject* HoveredGridObject;
 	UPROPERTY()
 	ACombatGridObject* SelectedGridObject;
 };
