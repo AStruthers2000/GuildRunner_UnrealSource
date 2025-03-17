@@ -7,6 +7,7 @@
 #include "GuildRunner/Grid/CombatGridPathfinding.h"
 #include "GuildRunner/Player/PlayerGridActions.h"
 #include "GuildRunner/Units/CombatGridUnit.h"
+#include "GuildRunner/Units/CombatGridUnitMovement.h"
 
 AAction_MoveUnitOnGrid::AAction_MoveUnitOnGrid()
 {
@@ -20,29 +21,29 @@ void AAction_MoveUnitOnGrid::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
-	//TODO: Unit code
-	/*
-	CurrentUnit = PlayerGridActions->GetSelectedUnit();
+	CurrentUnit = Cast<ACombatGridUnit>(PlayerGridActions->GetSelectedGridObject());
 	if (!CurrentUnit)
 	{
 		return;
 	}
 
-	CurrentUnit->OnCombatUnitFinishedWalking.AddDynamic(this, &AAction_MoveUnitOnGrid::OnUnitFinishedWalking);
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath);
+	//TODO: possibly refactor to instead have IsInPath be incremented and decremented for every unit moving 
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsInPath); 
+
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.AddDynamic(
 		this, &AAction_MoveUnitOnGrid::OnPathfindingCompleted);
 
+	CurrentUnit->GetCombatGridUnitMovement()->OnCombatUnitFinishedWalking.AddDynamic(this, &AAction_MoveUnitOnGrid::OnUnitFinishedWalking);
+
 	const auto bMoveDiagonal = CurrentUnit->GetUnitData().Stats.bCanMoveDiagonally;
 	const auto ValidTileTypes = CurrentUnit->GetUnitData().Stats.ValidTileTypes;
-	//PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
-	//	PlayerGridActions->GetSelectedTile(),
-	//	TileIndex,
-	//	bMoveDiagonal,
-	//	ValidTileTypes,
-	//	0.f,
-	//	0.f);
-	*/
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
+		PlayerGridActions->GetSelectedTile(),
+		TileIndex,
+		bMoveDiagonal,
+		false,
+		ValidTileTypes,
+		10);
 }
 
 
@@ -53,26 +54,21 @@ void AAction_MoveUnitOnGrid::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	ExecuteGridAction(FPATHFINDINGDATA_DEFAULT_INDEX);
 }
 
-void AAction_MoveUnitOnGrid::OnPathfindingCompleted(TArray<FIntPoint> Path)
+void AAction_MoveUnitOnGrid::OnPathfindingCompleted(const TArray<FIntPoint>& Path)
 {
-	//TODO: Unit code
-	/*
-	if (!CurrentUnit)
+	if (!CurrentUnit || CurrentUnit != PlayerGridActions->GetSelectedGridObject())
 	{
 		return;
 	}
-	if (CurrentUnit != PlayerGridActions->GetSelectedUnit())
-	{
-		return;
-	}
-
+	
 	for (auto& TileInPath : Path)
 	{
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileInPath, IsInPath);
 	}
-	CurrentUnit->SetMoveDurationPerTile(MoveDurationPerTile);
-	CurrentUnit->UnitFollowPath(Path);
-	*/
+	CurrentUnit->GetCombatGridUnitMovement()->SetMoveDurationPerTile(MoveDurationPerTile);
+	CurrentUnit->GetCombatGridUnitMovement()->UnitFollowPath(Path);
+	PlayerGridActions->DeselectCurrentTile();
+	PlayerGridActions->DeselectCurrentObject();
 }
 
 void AAction_MoveUnitOnGrid::OnUnitFinishedWalking(ACombatGridUnit* Unit)

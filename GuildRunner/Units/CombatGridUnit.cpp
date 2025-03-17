@@ -3,9 +3,9 @@
 
 #include "CombatGridUnit.h"
 
+#include "CombatGridUnitMovement.h"
 #include "UnitAnimationInterface.h"
 #include "GuildRunner/Grid/CombatGrid.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Utilities/UnitsUtilities.h"
 
 ACombatGridUnit::ACombatGridUnit()
@@ -14,6 +14,7 @@ ACombatGridUnit::ACombatGridUnit()
 
 	auto* DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Default Root"));
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Unit Skeletal Mesh"));
+	UnitMovement = CreateDefaultSubobject<UCombatGridUnitMovement>(TEXT("Unit Movement Handler"));
 
 	RootComponent = DefaultRoot;
 	SkeletalMesh->SetupAttachment(RootComponent);
@@ -21,6 +22,8 @@ ACombatGridUnit::ACombatGridUnit()
 	SkeletalMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Block);
 	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
+	SetBlockingObject(true);
+	
 	ConfigureUnitOnConstruct();
 }
 
@@ -37,99 +40,21 @@ void ACombatGridUnit::ConfigureUnitOnConstruct()
 	SkeletalMesh->SetSkeletalMesh(UnitData.Assets.Mesh);
 	SkeletalMesh->SetAnimInstanceClass(UnitData.Assets.Animation.LoadSynchronous());
 	SkeletalMesh->InitAnim(true);
-
 	
-
 	UE_LOG(LogTemp, Display, TEXT("Spawning unit of type: %s"), *UEnum::GetDisplayValueAsText(UnitType).ToString());
 }
 
 void ACombatGridUnit::BeginPlay()
 {
 	Super::BeginPlay();
-	SetBlockingObject(true);
 
 	ConfigureUnitOnConstruct();
 	SetUnitAnimationIndex(Idle);
 
-	FOnTimelineVector UpdateFunction;
-	UpdateFunction.BindUFunction(this, FName("TimelineUpdate"));
-	UnitMovementTimeline.AddInterpVector(UnitMovementCurve, UpdateFunction);
-
-	FOnTimelineEvent FinishFunction;
-	FinishFunction.BindUFunction(this, FName("OnTimelineFinished"));
-	UnitMovementTimeline.SetTimelineFinishedFunc(FinishFunction);
-
-	UnitMovementTimeline.SetTimelineLength(1.f);
-}
-
-void ACombatGridUnit::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	UnitMovementTimeline.TickTimeline(DeltaTime);
-}
-
-void ACombatGridUnit::UnitFollowPath(const TArray<FIntPoint>& TilesInPath)
-{
-	if (TilesInPath.Num() > 0)
-	{
-		CurrentPathToFollow = TilesInPath;
-		BeginWalkingForward();
-	}
+	UnitMovement->SetMyUnit(this);
 }
 
 
-void ACombatGridUnit::BeginWalkingForward()
-{
-	SetUnitAnimationIndex(Walk);
-	PreviousTileTransform = GetActorTransform();
-	NextTileTransform = GetGrid()->GetGridTiles().Find(CurrentPathToFollow[0])->Transform;
-	const auto LookAtRotation = UKismetMathLibrary::FindLookAtRotation(PreviousTileTransform.GetLocation(),
-	                                                                   NextTileTransform.GetLocation());
-	NextTileTransform.SetRotation(FRotator(0, LookAtRotation.Yaw, 0).Quaternion());
-	UnitMovementTimeline.SetPlayRate(
-		UKismetMathLibrary::SafeDivide(UnitMovementTimeline.GetTimelineLength(), MoveDurationPerTile));
-
-	UnitMovementTimeline.PlayFromStart();
-}
-
-void ACombatGridUnit::ContinueToFollowPath()
-{
-	if (CurrentPathToFollow.Num() > 0)
-	{
-		BeginWalkingForward();
-	}
-	else
-	{
-		SetUnitAnimationIndex(Idle);
-		OnCombatUnitFinishedWalking.Broadcast(this);
-	}
-}
-
-
-void ACombatGridUnit::TimelineUpdate(const FVector& Value)
-{
-	const float LocationAlpha = Value.X;
-	const float RotationAlpha = Value.Y;
-	const float JumpAlpha = Value.Z;
-
-	const FVector NewLocation = FMath::Lerp(PreviousTileTransform.GetLocation(), NextTileTransform.GetLocation(),
-	                                        LocationAlpha);
-	const FRotator NewRotation = UKismetMathLibrary::RLerp(PreviousTileTransform.Rotator(), NextTileTransform.Rotator(),
-	                                                       RotationAlpha, true);
-
-	const bool bTilesOnSameHeight = FMath::IsNearlyEqual(PreviousTileTransform.GetLocation().Z,
-	                                                     NextTileTransform.GetLocation().Z);
-	const FVector JumpOffset = FVector(0, 0, bTilesOnSameHeight ? 0.f : JumpAlpha);
-	SetActorLocationAndRotation(NewLocation + JumpOffset, NewRotation);
-}
-
-void ACombatGridUnit::OnTimelineFinished()
-{
-	OnCombatUnitReachedNewTile.Broadcast(this, CurrentPathToFollow[0]);
-	CurrentPathToFollow.RemoveAt(0);
-	ContinueToFollowPath();
-}
 
 
 

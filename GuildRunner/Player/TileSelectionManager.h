@@ -12,7 +12,7 @@ class APlayerGridActions;
 class ACombatGrid;
 class ACombatGridObject;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), BlueprintType)
 class GUILDRUNNER_API UTileSelectionManager : public UActorComponent
 {
 	GENERATED_BODY()

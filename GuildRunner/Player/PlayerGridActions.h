@@ -69,6 +69,9 @@ public:
 
 	void SelectTile(const FIntPoint& Index) const;
 	FIntPoint GetSelectedTile() const;
+	void DeselectCurrentTile() const;
+	ACombatGridObject* GetSelectedGridObject() const;
+	void DeselectCurrentObject() const;
 
 	void NotifyTileSelectionChanged(const FIntPoint& Index) const;
 

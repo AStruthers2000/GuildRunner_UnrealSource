@@ -67,7 +67,7 @@ public:
 	
 protected:
 	UFUNCTION(BlueprintCallable)
-	const ACombatGrid* GetGrid() const { return GridReference; }
+	ACombatGrid* GetGrid() const { return GridReference; }
 
 	void SetBlockingObject(bool BlockingObject) { bBlockingObject = BlockingObject; }
 

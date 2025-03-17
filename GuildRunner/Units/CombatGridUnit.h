@@ -5,17 +5,13 @@
 #include "CoreMinimal.h"
 #include "EUnitAnimationState.h"
 #include "EUnitType.h"
-#include "Components/TimelineComponent.h"
 #include "GameFramework/Actor.h"
 #include "GuildRunner/Grid/CombatGridObject.h"
-#include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "Utilities/FCombatGridUnitData.h"
 #include "CombatGridUnit.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCombatUnitReachedNewTile, ACombatGridUnit*, Unit, const FIntPoint&, Index);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCombatUnitFinishedWalking, ACombatGridUnit*, Unit);
-
+class UCombatGridUnitMovement;
 class ACombatGrid;
 
 UCLASS()
@@ -30,27 +26,13 @@ class GUILDRUNNER_API ACombatGridUnit : public ACombatGridObject
 		meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
 	TEnumAsByte<EUnitType> UnitType = Warrior;
 
-	UPROPERTY(EditAnywhere, Category = "GuildRunner|Units|Timeline", meta = (AllowPrivateAccess = "true"))
-	UCurveFloat* MovementSpeedCurve;
-
-	UPROPERTY(EditAnywhere, Category = "GuildRunner|Units|Timeline", meta = (AllowPrivateAccess = "true"))
-	UCurveFloat* RotationSpeedCurve;
-
-	UPROPERTY(EditAnywhere, Category = "GuildRunner|Units|Timeline", meta = (AllowPrivateAccess = "true"))
-	UCurveVector* UnitMovementCurve;
+	
 
 public:
-	/******************************************************************
-	 * Grid Callbacks
-	 ******************************************************************/
-	UPROPERTY(BlueprintAssignable, Category = "Test")
-	FCombatUnitReachedNewTile OnCombatUnitReachedNewTile;
-
-	UPROPERTY(BlueprintAssignable, Category = "Test")
-	FCombatUnitFinishedWalking OnCombatUnitFinishedWalking;
-
-
 	ACombatGridUnit();
+	friend UCombatGridUnitMovement;
+
+	UCombatGridUnitMovement* GetCombatGridUnitMovement() const { return UnitMovement; }
 
 	void SetUnitType(const TEnumAsByte<EUnitType> Type) { UnitType = Type; }
 
@@ -58,23 +40,18 @@ public:
 
 	FCombatGridUnitData GetUnitData() const { return UnitData; }
 
-	//UFUNCTION(BlueprintImplementableEvent)
-	void UnitFollowPath(const TArray<FIntPoint>& TilesInPath);
-
 	
-	void SetMoveDurationPerTile(const float NewDuration) { MoveDurationPerTile = NewDuration; }
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
 
 private:
 	void ConfigureUnitOnConstruct();
 
 	virtual UMeshComponent* GetMeshComponent() const override { return SkeletalMesh; }
 
-	
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
+	UCombatGridUnitMovement* UnitMovement;
 	
 
 	UPROPERTY()
@@ -85,22 +62,7 @@ private:
 
 	
 
-	FTimeline UnitMovementTimeline;
-
-	UFUNCTION()
-	void TimelineUpdate(const FVector& Value);
-
-	UFUNCTION()
-	void OnTimelineFinished();
-
-	FTransform PreviousTileTransform;
-	FTransform NextTileTransform;
-	TArray<FIntPoint> CurrentPathToFollow;
-	void BeginWalkingForward();
-	void ContinueToFollowPath();
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	float MoveDurationPerTile = 1.f;
+	
 
 
 #if WITH_EDITOR

@@ -76,6 +76,21 @@ FIntPoint APlayerGridActions::GetSelectedTile() const
 	return TileSelectionManager->GetSelectedTile();
 }
 
+void APlayerGridActions::DeselectCurrentTile() const
+{
+	TileSelectionManager->DeselectTile(TileSelectionManager->GetSelectedTile());
+}
+
+ACombatGridObject* APlayerGridActions::GetSelectedGridObject() const
+{
+	return TileSelectionManager->GetSelectedGridObject();
+}
+
+void APlayerGridActions::DeselectCurrentObject() const
+{
+	TileSelectionManager->DeselectObject(TileSelectionManager->GetSelectedGridObject());
+}
+
 void APlayerGridActions::NotifyTileSelectionChanged(const FIntPoint& Index) const
 {
 	OnSelectedTileChanged.Broadcast(Index);

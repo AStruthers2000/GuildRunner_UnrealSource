@@ -22,7 +22,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
-	void OnPathfindingCompleted(TArray<FIntPoint> Path);
+	void OnPathfindingCompleted(const TArray<FIntPoint>& Path);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -33,4 +33,6 @@ private:
 
 	UFUNCTION()
 	void OnUnitFinishedWalking(ACombatGridUnit* Unit);
+
+	
 };

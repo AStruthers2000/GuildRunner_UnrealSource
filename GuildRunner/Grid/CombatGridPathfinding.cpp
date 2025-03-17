@@ -214,10 +214,10 @@ bool UCombatGridPathfinding::IsInputDataValid(bool bGeneratingReachables) const
 		{
 			return false;
 		}
-		//if (!TargetTile || TargetTile->UnitOnTile)
-		//{
-		//	return false;
-		//}
+		if (!TargetTile || GridReference->IsTileOccupiedByBlockingObject(TargetIndex))
+		{
+			return false;
+		}
 	//}
 	//else
 	//{

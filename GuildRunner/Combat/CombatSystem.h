@@ -93,6 +93,22 @@ private:
 	UFUNCTION()
 	void OnTileDataUpdated(const FIntPoint& Index);
 
+	/**
+	 * @brief Called as soon as the unit starts moving to the new tile. This handles the registration of the unit on
+	 *	the appropriate tile. For units to stay synchronized and not end up stepping on the same tile, the registration
+	 *	has to happen as soon as the unit starts moving, not when the unit finishes moving
+	 * @param Unit Unit to instantly register on new tile
+	 * @param Index Index of new tile to register unit on
+	 */
+	UFUNCTION()
+	void OnUnitStartedMovingToNewTile(ACombatGridUnit* Unit, const FIntPoint& Index);
+
+	/**
+	 * @brief Called when the unit has fully reached this tile. Can handle events that happen when unit (visually)
+	 *	arrives at this tile
+	 * @param Unit Unit that reached tile
+	 * @param Index Index of tile unit reached
+	 */
 	UFUNCTION()
 	void OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint& Index);
 
@@ -102,3 +118,4 @@ private:
 	UPROPERTY()
 	TArray<ACombatGridObject*> ObjectsInCombat;
 };
+

@@ -6,6 +6,7 @@
 #include "Algo/ForEach.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "GuildRunner/Units/CombatGridUnit.h"
+#include "GuildRunner/Units/CombatGridUnitMovement.h"
 
 ACombatSystem::ACombatSystem()
 {
@@ -32,7 +33,8 @@ void ACombatSystem::AddObjectIntoCombat(ACombatGridObject* Object, const FIntPoi
 
 	if (auto* Unit = Cast<ACombatGridUnit>(Object))
 	{
-		Unit->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::ACombatSystem::OnUnitReachedNewTile);
+		Unit->GetCombatGridUnitMovement()->OnCombatUnitStartedMovingToNewTile.AddDynamic(this, &ACombatSystem::OnUnitStartedMovingToNewTile);
+		Unit->GetCombatGridUnitMovement()->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::OnUnitReachedNewTile);
 	}
 	
 	UpdateUnitLocation(Object, Index);
@@ -74,9 +76,6 @@ void ACombatSystem::SetUnitIndexOnGrid(ACombatGridObject* Object, const FIntPoin
 
 		// add unit to new tile
 		ManagedGrid->RegisterGridObjectWithTile(Object, Index);
-
-		// move unit to new tile
-		UpdateUnitLocation(Object, Index);
 
 		if (auto* Unit = Cast<ACombatGridUnit>(Object))
 		{
@@ -126,9 +125,16 @@ void ACombatSystem::OnTileDataUpdated(const FIntPoint& Index)
 	}
 }
 
+void ACombatSystem::OnUnitStartedMovingToNewTile(ACombatGridUnit* Unit, const FIntPoint& Index)
+{
+	SetUnitIndexOnGrid(Unit, Index);
+}
+
 void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint& Index)
 {
 	//Could also use this function to add some verification that the unit actually reached the new tile
 	//or to check if the unit stepped on some traps, etc.
-	SetUnitIndexOnGrid(Unit, Index);
+	
+	// move unit to new tile
+	UpdateUnitLocation(Unit, Index);
 }
