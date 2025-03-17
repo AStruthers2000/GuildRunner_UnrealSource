@@ -6,9 +6,19 @@
 #include "PlayerGridActions.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 
-UTileSelectionManager::UTileSelectionManager()
+void UTileSelectionManager::SetGridReference(ACombatGrid* Grid)
 {
+	GridReference = Grid;
+	GridReference->OnCombatGridGenerated.AddDynamic(this, &UTileSelectionManager::OnGridGenerated);
+	GridReference->OnTileDataUpdated.AddDynamic(this, &UTileSelectionManager::OnTileDataUpdated);
 }
+
+void UTileSelectionManager::SetPlayerGridActionsReference(APlayerGridActions* PlayerActions)
+{
+	PlayerGridActions = PlayerActions;
+	PlayerGridActions->OnSelectedTileChanged.AddDynamic(this, &UTileSelectionManager::OnTileSelectionChanged);
+}
+
 
 void UTileSelectionManager::UpdateTileUnderCursor()
 {
@@ -47,6 +57,26 @@ void UTileSelectionManager::IncrementSelectedTile(const FIntPoint& Index) const
 	GridReference->IncrementTimesTileHasBeenSelected(Index);
 }
 
+void UTileSelectionManager::TrySelectTile(const FIntPoint& Index, const bool bForceUpdate)
+{
+	if (Index == FIntPoint(FPATHFINDINGDATA_DEFAULT_INDEX))
+	{
+		DeselectTile(GetSelectedTile());
+	}
+	else if (GetSelectedTile() != Index || bForceUpdate)
+	{
+		DeselectTile(GetSelectedTile());
+		SelectTile(Index);
+	}
+	else
+	{
+		IncrementSelectedTile(Index);
+	}
+
+	bForcingUpdate = bForceUpdate;
+	PlayerGridActions->NotifyTileSelectionChanged(GetSelectedTile());
+}
+
 void UTileSelectionManager::DeselectObject(ACombatGridObject* Object)
 {
 	if (Object) Object->SetIsSelected(false);
@@ -59,41 +89,25 @@ void UTileSelectionManager::SelectObject(ACombatGridObject* Object)
 	SetSelectedObject(Object);
 }
 
-void UTileSelectionManager::TrySelectObjectOnSelectedTile(const FIntPoint& Index, const bool bForceUpdate)
+void UTileSelectionManager::TrySelectObjectOnSelectedTile(const FIntPoint& Index)
 {
+	if (!GridReference) return;
+	
 	auto TileData = GridReference->GetGridTiles().Find(Index);
-	if (!TileData) return;
+	if (!TileData)
+	{
+		DeselectObject(SelectedGridObject);
+		return;
+	}
 
 	auto* NewUnit = TileData->GetSelectedItem();
-	if (NewUnit != SelectedGridObject || bForceUpdate)
+	if (NewUnit != SelectedGridObject || bForcingUpdate)
 	{
 		DeselectObject(SelectedGridObject);
 		SelectObject(NewUnit);
 	}
-}
 
-void UTileSelectionManager::TrySelectTile(const FIntPoint& Index, const bool bForceUpdate)
-{
-	bool bShouldNotifyChanged = false;
-	if (Index == FIntPoint(FPATHFINDINGDATA_DEFAULT_INDEX))
-	{
-		DeselectTile(GetSelectedTile());
-		bShouldNotifyChanged = true;
-	}
-	else if (GetSelectedTile() != Index || bForceUpdate)
-	{
-		DeselectTile(GetSelectedTile());
-		SelectTile(Index);
-		bShouldNotifyChanged = true;
-	}
-	else
-	{
-		IncrementSelectedTile(Index);
-	}
-	
-	if (bShouldNotifyChanged) PlayerGridActions->NotifyTileSelectionChanged(GetSelectedTile());
-	
-	TrySelectObjectOnSelectedTile(GetSelectedTile(), bForceUpdate);
+	bForcingUpdate = false;
 }
 
 void UTileSelectionManager::OnGridGenerated()
@@ -114,6 +128,11 @@ void UTileSelectionManager::OnTileDataUpdated(const FIntPoint& Index)
 	{
 		OnGridGenerated();
 	}
+}
+
+void UTileSelectionManager::OnTileSelectionChanged(const FIntPoint& TileIndex)
+{
+	TrySelectObjectOnSelectedTile(TileIndex);
 }
 
 //void UTileSelectionManager::OnUnitGridIndexChanged(ACombatGridUnit* Unit)

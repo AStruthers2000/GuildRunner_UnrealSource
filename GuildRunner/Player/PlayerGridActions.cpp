@@ -19,7 +19,6 @@ APlayerGridActions::APlayerGridActions()
 
 	GridReference = nullptr;
 	TileSelectionManager = CreateDefaultSubobject<UTileSelectionManager>(TEXT("TileSelectionManager"));
-	TileSelectionManager->SetPlayerGridActionsReference(this);
 }
 
 void APlayerGridActions::BeginPlay()
@@ -31,8 +30,6 @@ void APlayerGridActions::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("[APlayerGridActions::BeginPlay]:\tNo grid found for player actions"));
 	}
 	
-	TileSelectionManager->SetGridReference(GridReference);
-
 	CombatSystemReference = Cast<ACombatSystem>(UGameplayStatics::GetActorOfClass(this, ACombatSystem::StaticClass()));
 	if (!CombatSystemReference)
 	{
@@ -54,9 +51,11 @@ void APlayerGridActions::BeginPlay()
 		}
 	}
 	
-	GridReference->OnCombatGridGenerated.AddDynamic(TileSelectionManager, &UTileSelectionManager::OnGridGenerated);
-	GridReference->OnTileDataUpdated.AddDynamic(TileSelectionManager, &UTileSelectionManager::OnTileDataUpdated);
+	
 	//CombatSystemReference->OnGridUnitIndexChanged.AddDynamic(this, &APlayerGridActions::OnUnitGridIndexChanged);
+	
+	TileSelectionManager->SetGridReference(GridReference);
+	TileSelectionManager->SetPlayerGridActionsReference(this);
 
 	SetSelectedActions(PlayerAction_LeftClickOnTile, PlayerAction_LeftClickOnTile);
 }
