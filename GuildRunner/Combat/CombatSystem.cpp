@@ -119,7 +119,7 @@ void ACombatSystem::OnTileDataUpdated(const FIntPoint& Index)
 	auto* Tile = ManagedGrid->GetGridTiles().Find(Index);
 	if (!Tile) return;
 	
-	auto& Temp_ObjectsOnTile = Tile->ObjectsOnTile;
+	auto Temp_ObjectsOnTile = Tile->ObjectsOnTile;
 	for (const auto& Unit : Temp_ObjectsOnTile)
 	{
 		UpdateUnitOnTileGeneration(Unit);

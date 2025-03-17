@@ -19,9 +19,9 @@ ACombatGridUnit::ACombatGridUnit()
 	SkeletalMesh->SetupAttachment(RootComponent);
 	SkeletalMesh->SetWorldRotation(FRotator(0, -90, 0));
 	SkeletalMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Block);
+	SkeletalMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	ConfigureUnitOnConstruct();
-	//SkeletalMesh->SetSkeletalMesh()
 }
 
 void ACombatGridUnit::ConfigureUnitOnConstruct()
@@ -38,9 +38,7 @@ void ACombatGridUnit::ConfigureUnitOnConstruct()
 	SkeletalMesh->SetAnimInstanceClass(UnitData.Assets.Animation.LoadSynchronous());
 	SkeletalMesh->InitAnim(true);
 
-	UpdateVisualIfHoveredOrSelected();
-
-	SetBlockingObject(true);
+	
 
 	UE_LOG(LogTemp, Display, TEXT("Spawning unit of type: %s"), *UEnum::GetDisplayValueAsText(UnitType).ToString());
 }
@@ -48,6 +46,8 @@ void ACombatGridUnit::ConfigureUnitOnConstruct()
 void ACombatGridUnit::BeginPlay()
 {
 	Super::BeginPlay();
+	SetBlockingObject(true);
+
 	ConfigureUnitOnConstruct();
 	SetUnitAnimationIndex(Idle);
 
@@ -107,7 +107,7 @@ void ACombatGridUnit::ContinueToFollowPath()
 }
 
 
-void ACombatGridUnit::TimelineUpdate(FVector Value)
+void ACombatGridUnit::TimelineUpdate(const FVector& Value)
 {
 	const float LocationAlpha = Value.X;
 	const float RotationAlpha = Value.Y;
@@ -132,14 +132,7 @@ void ACombatGridUnit::OnTimelineFinished()
 }
 
 
-void ACombatGridUnit::UpdateVisualIfHoveredOrSelected() const
-{
-	const FLinearColor NewColor = (bIsSelected ? SelectedColor : FLinearColor(1, 1, 1, 1)) * (
-		bIsHovered ? HoveredColorMultiplier : 1) * (bIsSelected ? SelectedColorMultiplier : 1);
-	const FVector ColorAsVector = FVector(NewColor.R, NewColor.G, NewColor.B);
-	//UE_LOG(LogTemp, Display, TEXT("ColorMultiply value for unit %s: %s"), *GetActorNameOrLabel(), *ColorAsVector.ToString());
-	SkeletalMesh->SetVectorParameterValueOnMaterials("ColorMultiply", ColorAsVector);
-}
+
 
 void ACombatGridUnit::SetUnitAnimationIndex(TEnumAsByte<EUnitAnimationState> AnimState)
 {
@@ -152,8 +145,6 @@ void ACombatGridUnit::SetUnitAnimationIndex(TEnumAsByte<EUnitAnimationState> Ani
 
 
 #if WITH_EDITOR
-
-
 void ACombatGridUnit::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

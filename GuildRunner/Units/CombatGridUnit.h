@@ -30,15 +30,6 @@ class GUILDRUNNER_API ACombatGridUnit : public ACombatGridObject
 		meta = (AllowPrivateAccess = "true", ExposeOnSpawn = "true"))
 	TEnumAsByte<EUnitType> UnitType = Warrior;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
-	FLinearColor SelectedColor = FLinearColor(1, 1, 1, 1);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
-	float HoveredColorMultiplier = 2.5f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Units", meta = (AllowPrivateAccess = "true"))
-	float SelectedColorMultiplier = 2.5f;
-
 	UPROPERTY(EditAnywhere, Category = "GuildRunner|Units|Timeline", meta = (AllowPrivateAccess = "true"))
 	UCurveFloat* MovementSpeedCurve;
 
@@ -61,26 +52,9 @@ public:
 
 	ACombatGridUnit();
 
-	
-
 	void SetUnitType(const TEnumAsByte<EUnitType> Type) { UnitType = Type; }
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateVisualIfHoveredOrSelected() const;
-
-	UFUNCTION(BlueprintCallable)
-	void SetIsHovered(const bool bHovered)
-	{
-		bIsHovered = bHovered;
-		UpdateVisualIfHoveredOrSelected();
-	}
-
-	UFUNCTION(BlueprintCallable)
-	void SetIsSelected(const bool bSelected)
-	{
-		bIsSelected = bSelected;
-		UpdateVisualIfHoveredOrSelected();
-	}
+	
 
 	FCombatGridUnitData GetUnitData() const { return UnitData; }
 
@@ -97,13 +71,11 @@ protected:
 private:
 	void ConfigureUnitOnConstruct();
 
+	virtual UMeshComponent* GetMeshComponent() const override { return SkeletalMesh; }
+
 	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bIsHovered;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bIsSelected;
+	
 
 	UPROPERTY()
 	FCombatGridUnitData UnitData;
@@ -116,7 +88,7 @@ private:
 	FTimeline UnitMovementTimeline;
 
 	UFUNCTION()
-	void TimelineUpdate(FVector Value);
+	void TimelineUpdate(const FVector& Value);
 
 	UFUNCTION()
 	void OnTimelineFinished();

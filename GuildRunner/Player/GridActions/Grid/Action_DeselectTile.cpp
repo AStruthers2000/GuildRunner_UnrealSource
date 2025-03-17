@@ -16,7 +16,7 @@ void AAction_DeselectTile::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
-	PlayerGridActions->TrySelectTile(FPATHFINDINGDATA_DEFAULT_INDEX);
+	PlayerGridActions->SelectTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 }
 
 void AAction_DeselectTile::EndPlay(const EEndPlayReason::Type EndPlayReason)

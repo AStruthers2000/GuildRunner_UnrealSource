@@ -31,7 +31,7 @@ struct FTileData
 	int32 TimesSelected = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 IndexOfSelectedObject = -1;
+	int32 IndexOfSelectedObject = 0;
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	//ACombatGridUnit* UnitOnTile;
@@ -48,7 +48,7 @@ struct FTileData
 	void TileDeselected()
 	{
 		TimesSelected = 0;
-		IndexOfSelectedObject = -1;
+		IndexOfSelectedObject = 0;
 	}
 
 	void IncrementTimesSelected()
@@ -60,7 +60,7 @@ struct FTileData
 		else IndexOfSelectedObject = (TimesSelected - 1) % ObjectsOnTile.Num();
 	}
 
-	ACombatGridObject* GetSelectedItem()
+	ACombatGridObject* GetSelectedItem() const
 	{
 		if (ObjectsOnTile.IsEmpty()) return nullptr;
 		return ObjectsOnTile[IndexOfSelectedObject];
