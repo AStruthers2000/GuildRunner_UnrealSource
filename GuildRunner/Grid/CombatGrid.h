@@ -71,7 +71,7 @@ private:
 	 ******************************************************************/
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions,
-	               TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = false);
+	               TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = true);
 
 public:
 	void AddGridTile(const FTileData& TileData);
@@ -143,6 +143,7 @@ public:
 public:
 	UCombatGridPathfinding* GetGridPathfinding() const { return CombatGridPathfinding; }
 	bool IsTileWalkable(const FIntPoint& Index);
+	bool IsTileWalkable(const ACombatGridUnit* Unit, const FIntPoint& Index);
 
 	/******************************************************************
 	 * Grid Objects

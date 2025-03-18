@@ -4,7 +4,6 @@
 #include "CombatGridUnitMovement.h"
 
 #include "CombatGridUnit.h"
-#include "INodeAndChannelMappings.h"
 #include "UnitAnimationInterface.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "Kismet/KismetMathLibrary.h"

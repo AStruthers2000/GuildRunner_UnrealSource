@@ -517,6 +517,23 @@ bool ACombatGrid::IsTileWalkable(const FIntPoint& Index)
 	return UGridShapeUtilities::IsTileTypeWalkable(Tile->Type);
 }
 
+bool ACombatGrid::IsTileWalkable(const ACombatGridUnit* Unit, const FIntPoint& Index)
+{
+	const auto Tile = GridTiles.Find(Index);
+	if (!Tile)
+	{
+		return false;
+	}
+	
+	// if this tile is walkable, we want to make sure that this unit is actually capable of walking on it
+	bool bIsThisTileWalkable = IsTileWalkable(Index);
+
+	// if the unit's valid tile types contains this tile's type, then we can walk on it
+	bool bCanThisUnitWalkOnTile = Unit->GetUnitData().Stats.ValidTileTypes.Contains(Tile->Type);
+
+	return bIsThisTileWalkable && bCanThisUnitWalkOnTile;
+}
+
 /******************************************************************
  * Grid Objects
  ******************************************************************/

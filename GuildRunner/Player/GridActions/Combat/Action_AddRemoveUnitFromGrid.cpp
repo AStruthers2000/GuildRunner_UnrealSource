@@ -31,14 +31,23 @@ void AAction_AddRemoveUnitFromGrid::ExecuteGridAction(FIntPoint TileIndex)
 
 void AAction_AddRemoveUnitFromGrid::AddUnitOnTile(const FIntPoint& TileIndex) const
 {
-	bool bIsWalkable = PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex);
-	bool bIsOccupied = PlayerGridActions->GetCombatGridReference()->IsTileOccupiedByBlockingObject(TileIndex);
+	const bool bIsWalkable = PlayerGridActions->GetCombatGridReference()->IsTileWalkable(TileIndex);
+	const bool bIsOccupied = PlayerGridActions->GetCombatGridReference()->IsTileOccupiedByBlockingObject(TileIndex);
 	
 	if (bIsWalkable && !bIsOccupied)
 	{
 		if (auto* SpawnedUnit = SpawnUnit())
 		{
-			PlayerGridActions->GetCombatSystemReference()->AddObjectIntoCombat(SpawnedUnit, TileIndex);
+			// if the spawned unit is actually allowed to exist on this tile
+			if (PlayerGridActions->GetCombatGridReference()->IsTileWalkable(SpawnedUnit, TileIndex))
+			{
+				PlayerGridActions->GetCombatSystemReference()->AddObjectIntoCombat(SpawnedUnit, TileIndex);
+			}
+			else
+			{
+				// immediately destroy unit before it is registered anywhere
+				SpawnedUnit->Destroy();
+			}
 		}
 	}
 	else

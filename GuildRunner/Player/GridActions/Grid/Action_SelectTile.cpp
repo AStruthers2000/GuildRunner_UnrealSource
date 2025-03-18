@@ -16,7 +16,6 @@ void AAction_SelectTile::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Executing Action_SelectTile trying to select tile %s"), *TileIndex.ToString());
 	PlayerGridActions->SelectTile(TileIndex);
 }
 
