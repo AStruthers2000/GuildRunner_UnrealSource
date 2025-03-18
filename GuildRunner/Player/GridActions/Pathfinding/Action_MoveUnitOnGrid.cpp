@@ -58,7 +58,9 @@ void AAction_MoveUnitOnGrid::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AAction_MoveUnitOnGrid::OnPathfindingCompleted(const TArray<FIntPoint>& Path)
 {
-	if (!CurrentUnit || CurrentUnit != PlayerGridActions->GetSelectedGridObject())
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnPathfindingCompleted.RemoveDynamic(this, &AAction_MoveUnitOnGrid::OnPathfindingCompleted);
+	
+	if (!CurrentUnit || CurrentUnit != PlayerGridActions->GetSelectedGridObject() || Path.IsEmpty())
 	{
 		return;
 	}
@@ -72,12 +74,12 @@ void AAction_MoveUnitOnGrid::OnPathfindingCompleted(const TArray<FIntPoint>& Pat
 	{
 		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), PathfindingTarget);
 	}
+
 	
 	CurrentUnit->GetCombatGridUnitMovement()->SetMoveDurationPerTile(MoveDurationPerTile);
 	CurrentUnit->GetCombatGridUnitMovement()->UnitFollowPath(Path);
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
 	PlayerGridActions->DeselectCurrentTile();
-	PlayerGridActions->DeselectCurrentObject();
 }
 
 void AAction_MoveUnitOnGrid::OnUnitFinishedWalking(ACombatGridUnit* Unit)

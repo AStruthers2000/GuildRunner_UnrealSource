@@ -78,6 +78,7 @@ private:
 	UFUNCTION()
 	void OnTimelineFinished();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	bool bCurrentlyMoving = false;
 	FRotator EndPathfindingRotation;
 	FTransform PreviousTileTransform;

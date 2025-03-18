@@ -57,7 +57,7 @@ void APlayerGridActions::BeginPlay()
 	TileSelectionManager->SetGridReference(GridReference);
 	TileSelectionManager->SetPlayerGridActionsReference(this);
 
-	SetSelectedActions(PlayerAction_LeftClickOnTile, PlayerAction_LeftClickOnTile);
+	SetSelectedActions(PlayerAction_LeftClickOnTile, PlayerAction_RightClickOnTile);
 }
 
 void APlayerGridActions::Tick(float DeltaSeconds)
@@ -78,17 +78,12 @@ FIntPoint APlayerGridActions::GetSelectedTile() const
 
 void APlayerGridActions::DeselectCurrentTile() const
 {
-	TileSelectionManager->DeselectTile(TileSelectionManager->GetSelectedTile());
+	SelectTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 }
 
 ACombatGridObject* APlayerGridActions::GetSelectedGridObject() const
 {
 	return TileSelectionManager->GetSelectedGridObject();
-}
-
-void APlayerGridActions::DeselectCurrentObject() const
-{
-	TileSelectionManager->DeselectObject(TileSelectionManager->GetSelectedGridObject());
 }
 
 void APlayerGridActions::NotifyTileSelectionChanged(const FIntPoint& Index) const

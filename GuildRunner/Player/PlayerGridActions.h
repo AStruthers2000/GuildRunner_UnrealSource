@@ -71,7 +71,6 @@ public:
 	FIntPoint GetSelectedTile() const;
 	void DeselectCurrentTile() const;
 	ACombatGridObject* GetSelectedGridObject() const;
-	void DeselectCurrentObject() const;
 
 	void NotifyTileSelectionChanged(const FIntPoint& Index) const;
 
@@ -82,7 +81,7 @@ private:
 	UPROPERTY()
 	ACombatSystem* CombatSystemReference;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GuildRunner|Input", meta = (AllowPrivateAccess = "true"))
 	UTileSelectionManager* TileSelectionManager;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

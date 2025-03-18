@@ -124,10 +124,9 @@ private:
 	/**
 	 * @brief Called once at the end of unit movement
 	 * @param Unit Unit that finished pathfinding
-	 * @param Index Index of unit at the end of pathfinding
 	 */
 	UFUNCTION()
-	void OnUnitFinishedPathfinding(ACombatGridUnit* Unit, const FIntPoint& Index);
+	void OnUnitFinishedPathfinding(ACombatGridUnit* Unit);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ACombatGrid* ManagedGrid;

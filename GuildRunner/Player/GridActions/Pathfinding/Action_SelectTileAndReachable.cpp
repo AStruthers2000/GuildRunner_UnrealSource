@@ -14,7 +14,22 @@ void AAction_SelectTileAndReachable::ExecuteGridAction(FIntPoint TileIndex)
 {
 	Super::ExecuteGridAction(TileIndex);
 
-	GenerateReachables();
+	if (TileIndex != LastGeneratedReachablesOn)
+	{
+		PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
+	}
+
+	if (PlayerGridActions->GetSelectedTile() == TileIndex)
+	{
+		GenerateReachables();
+	}
+}
+
+void AAction_SelectTileAndReachable::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
 }
 
 void AAction_SelectTileAndReachable::GenerateReachables()
@@ -30,13 +45,14 @@ void AAction_SelectTileAndReachable::GenerateReachables()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Selected Grid Object is null or not a unit, using default values"));
 		bUnitReachables = false;
+		return;
 	}
 
 	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
-
+	
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnReachableTilesCompleted.AddDynamic(
 		this, &AAction_SelectTileAndReachable::OnPathfindingCompleted);
-
+	
 	bool bMoveDiagonal = bIncludeDiagonals;
 	auto ValidTileTypes = GetValidWalkingTiles();
 	int32 MovementLength = MaxPathLength;
@@ -48,6 +64,7 @@ void AAction_SelectTileAndReachable::GenerateReachables()
 		MovementLength = SelectedUnit->GetUnitData().Stats.MovementPoints;
 	}
 
+	LastGeneratedReachablesOn = PlayerGridActions->GetSelectedTile();
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->FindPath(
 		PlayerGridActions->GetSelectedTile(),
 		FPATHFINDINGDATA_DEFAULT_INDEX,
@@ -96,6 +113,8 @@ void AAction_SelectTileAndReachable::Tick(float DeltaSeconds)
  */
 void AAction_SelectTileAndReachable::OnPathfindingCompleted(const TArray<FIntPoint>& Path)
 {
+	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnReachableTilesCompleted.RemoveDynamic(
+		this, &AAction_SelectTileAndReachable::OnPathfindingCompleted);
 	TilesToUpdateState = Path;
 	Algo::RandomShuffle(TilesToUpdateState);
 	bAddingStateToTile = true;

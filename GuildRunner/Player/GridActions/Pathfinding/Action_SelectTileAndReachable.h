@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GuildRunner/Grid/Utilities/ETileType.h"
+#include "GuildRunner/Grid/Utilities/FPathfindingData.h"
 #include "GuildRunner/Player/GridActions/Grid/Action_SelectTile.h"
 #include "Action_SelectTileAndReachable.generated.h"
 
@@ -17,11 +18,13 @@ class GUILDRUNNER_API AAction_SelectTileAndReachable : public AAction_SelectTile
 
 public:
 	virtual void ExecuteGridAction(FIntPoint TileIndex) override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	UFUNCTION()
 	void GenerateReachables();
 
-	void Tick(float DeltaSeconds) override;
+	virtual void Tick(float DeltaSeconds) override;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -38,6 +41,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float MaxMsPerFrame = 1.f;
+
+	FIntPoint LastGeneratedReachablesOn = FIntPoint(FPATHFINDINGDATA_DEFAULT_INDEX);
 
 	UFUNCTION()
 	void OnPathfindingCompleted(const TArray<FIntPoint>& Path);

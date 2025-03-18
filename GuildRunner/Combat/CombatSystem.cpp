@@ -36,6 +36,7 @@ void ACombatSystem::AddObjectIntoCombat(ACombatGridObject* Object, const FIntPoi
 		Unit->GetCombatGridUnitMovement()->OnCombatUnitStartedMovingToTargetTile.AddDynamic(this, &ACombatSystem::OnUnitStartedMovingToTargetTile);
 		Unit->GetCombatGridUnitMovement()->OnCombatUnitStartedMovingToNewTile.AddDynamic(this, &ACombatSystem::OnUnitStartedMovingToNewTile);
 		Unit->GetCombatGridUnitMovement()->OnCombatUnitReachedNewTile.AddDynamic(this, &ACombatSystem::OnUnitReachedNewTile);
+		Unit->GetCombatGridUnitMovement()->OnCombatUnitFinishedWalking.AddDynamic(this, &ACombatSystem::OnUnitFinishedPathfinding);
 	}
 	
 	UpdateUnitLocation(Object, Index);
@@ -157,8 +158,8 @@ void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint&
 	UpdateUnitLocation(Unit, Index);
 }
 
-void ACombatSystem::OnUnitFinishedPathfinding(ACombatGridUnit* Unit, const FIntPoint& Index)
+void ACombatSystem::OnUnitFinishedPathfinding(ACombatGridUnit* Unit)
 {
-	ManagedGrid->DecrementTimesTileIsInPath(Index);
-	ManagedGrid->RemoveStateFromTile(Index, PathfindingTarget);
+	ManagedGrid->DecrementTimesTileIsInPath(Unit->GetIndexOnGrid());
+	ManagedGrid->RemoveStateFromTile(Unit->GetIndexOnGrid(), PathfindingTarget);
 }

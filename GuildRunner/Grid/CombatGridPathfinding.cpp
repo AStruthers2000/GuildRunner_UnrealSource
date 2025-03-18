@@ -423,10 +423,10 @@ bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, c
 	}
 
 	//if there is a unit on this tile, we don't count it as valid
-	//if (NeighborData->UnitOnTile)
-	//{
-	//	return false;
-	//}
+	if (GridReference->IsTileOccupiedByBlockingObject(Neighbor))
+	{
+		return false;
+	}
 
 	const float MyHeight = InputTile.Transform.GetLocation().Z;
 	const float NeighborHeight = NeighborData->Transform.GetLocation().Z;

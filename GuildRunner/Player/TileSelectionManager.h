@@ -40,11 +40,31 @@ public:
 	 */
 	void UpdateTileUnderCursor();
 	
+	
+
+private:
+	UFUNCTION()
+	void OnGridGenerated();
+
+	UFUNCTION()
+	void OnTileDataUpdated(const FIntPoint& Index);
+	
+	UFUNCTION()
+	void OnTileSelectionChanged(const FIntPoint& TileIndex);
+	
+	void SetHoveredTile(const FIntPoint& NewIndex) { HoveredTile = NewIndex; }
+	void SetSelectedTile(const FIntPoint& NewIndex) { SelectedTile = NewIndex; }
+	void SetSelectedObject(ACombatGridObject* NewGridObject) { SelectedGridObject = NewGridObject; };
+
+	void SetGridReference(ACombatGrid* Grid);
+	void SetPlayerGridActionsReference(APlayerGridActions* PlayerActions);
+	
 	/**
 	 * @brief Tries to deselect the provided tile, if it is a valid tile index
 	 * @param Index Index of tile to be deselected
 	 */
 	void DeselectTile(const FIntPoint& Index);
+	
 	/**
 	 * @brief Tries to select the provided tile, if it is a valid tile index
 	 * @param Index Index of tile to be selected
@@ -77,25 +97,6 @@ public:
 	 */
 	void TrySelectObjectOnSelectedTile(const FIntPoint& Index);
 
-private:
-	UFUNCTION()
-	void OnGridGenerated();
-
-	UFUNCTION()
-	void OnTileDataUpdated(const FIntPoint& Index);
-	
-	UFUNCTION()
-	void OnTileSelectionChanged(const FIntPoint& TileIndex);
-	
-	void SetHoveredTile(const FIntPoint& NewIndex) { HoveredTile = NewIndex; }
-	void SetSelectedTile(const FIntPoint& NewIndex) { SelectedTile = NewIndex; }
-	void SetSelectedObject(ACombatGridObject* NewGridObject) { SelectedGridObject = NewGridObject; };
-
-	void SetGridReference(ACombatGrid* Grid);
-	void SetPlayerGridActionsReference(APlayerGridActions* PlayerActions);
-	
-
-
 	//UFUNCTION()
 	//void OnUnitGridIndexChanged(ACombatGridUnit* Unit);
 
@@ -106,11 +107,14 @@ private:
 
 	UPROPERTY()
 	APlayerGridActions* PlayerGridActions;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TileSelection", meta = (AllowPrivateAccess = "true"))
 	FIntPoint HoveredTile = FPATHFINDINGDATA_DEFAULT_INDEX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TileSelection", meta = (AllowPrivateAccess = "true"))
 	FIntPoint SelectedTile = FPATHFINDINGDATA_DEFAULT_INDEX;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TileSelection", meta = (AllowPrivateAccess = "true"))
 	ACombatGridObject* SelectedGridObject;
 };
 
