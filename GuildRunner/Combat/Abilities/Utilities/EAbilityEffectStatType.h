@@ -5,7 +5,9 @@
 UENUM(BlueprintType)
 enum class EAbilityEffectStatType : uint8
 {
-	Health,
-	Mana,
-	Movement
+	NoStatType	UMETA(DisplayName = "No Stat Type"),
+	Health		UMETA(DisplayName = "Health"),
+	Mana		UMETA(DisplayName = "Mana"),
+	Stamina		UMETA(DisplayName = "Stamina"),
+	Movement	UMETA(DisplayName = "Movement Points"),
 };

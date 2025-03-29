@@ -27,7 +27,7 @@ void UCombatGridPathfinding::BeginPlay()
  ******************************************************************/
 
 TArray<FIntPoint> UCombatGridPathfinding::FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, bool bCalculatingRange,
-                                                   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, int32 Range)
+                                                   const TArray<ETileType>& ValidTileTypes, int32 Range)
 {
 	//ClearGeneratedPathfindingData();
 
@@ -235,7 +235,7 @@ int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index
 	const int32 YComp = (Index1 - Index2).Y;
 	switch (GridReference->GetGridShape())
 	{
-	case Square:
+	case EGridShape::Square:
 		if (bUsingDiagonals)
 		{
 			return FMath::Max(FMath::Abs(XComp), FMath::Abs(YComp));
@@ -244,9 +244,9 @@ int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index
 		{
 			return FMath::Abs(XComp) + FMath::Abs(YComp);
 		}
-	case Hexagon:
+	case EGridShape::Hexagon:
 		return FMath::Abs(XComp) + FMath::Max((FMath::Abs(YComp) - FMath::Abs(XComp)) / 2, 0);
-	case Triangle:
+	case EGridShape::Triangle:
 		{
 			if (bUsingDiagonals)
 			{
@@ -273,7 +273,7 @@ int UCombatGridPathfinding::GetMinimumCostBetweenTwoTiles(const FIntPoint& Index
 			const int32 StartFacingUp = FacingUp ? BelowStarting : -BelowStarting;
 			return AbsX * 2 + StartFacingUp;
 		}
-	case NoDefinedShape:
+	case EGridShape::NoDefinedShape:
 	default:
 		return 0;
 	}
@@ -290,13 +290,13 @@ TArray<FPathfindingData> UCombatGridPathfinding::GetValidTileNeighbors(const FIn
 {
 	switch (GridReference->GetGridShape())
 	{
-	case Square:
+	case EGridShape::Square:
 		return GetNeighborIndicesForSquare(Index, bIncludeDiagonals);
-	case Hexagon:
+	case EGridShape::Hexagon:
 		return GetNeighborIndicesForHexagon(Index);
-	case Triangle:
+	case EGridShape::Triangle:
 		return GetNeighborIndicesForTriangle(Index, bIncludeDiagonals);
-	case NoDefinedShape: //intentional fallthrough
+	case EGridShape::NoDefinedShape: //intentional fallthrough
 	default: return {};
 	}
 }
@@ -401,7 +401,7 @@ TArray<FPathfindingData> UCombatGridPathfinding::CheckPotentialNeighbors(
 }
 
 bool UCombatGridPathfinding::ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor,
-                                                   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const
+                                                   const TArray<ETileType>& ValidTileTypes) const
 {
 	if (!GridReference->IsIndexValid(Neighbor))
 	{
@@ -449,16 +449,16 @@ int32 UCombatGridPathfinding::CalculateCostToEnterTile(const FTileData& InputTil
 {
 	switch (InputTile.Type)
 	{
-	case Normal:
+	case ETileType::Normal:
 		return FPATHFINDINGDATA_DEFAULT_TILE_COST;
-	case DoubleCost:
+	case ETileType::DoubleCost:
 		return FPATHFINDINGDATA_DEFAULT_TILE_COST * 2;
-	case TripleCost:
+	case ETileType::TripleCost:
 		return FPATHFINDINGDATA_DEFAULT_TILE_COST * 3;
-	case FlyingUnitsOnly:
+	case ETileType::FlyingUnitsOnly:
 		return FPATHFINDINGDATA_DEFAULT_TILE_COST;
-	case Obstacle:
-	case NoTile:
+	case ETileType::Obstacle:
+	case ETileType::NoTile:
 	default: return FPATHFINDINGDATA_DEFAULT_ROUTING_COST;
 	}
 }

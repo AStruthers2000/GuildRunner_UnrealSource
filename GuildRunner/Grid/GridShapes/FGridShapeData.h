@@ -4,7 +4,7 @@
 #include "FGridShapeData.generated.h"
 
 UENUM(BlueprintType)
-enum EGridShape
+enum class EGridShape : uint8
 {
 	NoDefinedShape,
 	Hexagon,

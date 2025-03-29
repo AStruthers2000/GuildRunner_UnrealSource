@@ -20,11 +20,11 @@ class GUILDRUNNER_API ACombatGridModifier : public AActor
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid|Modifiers",
 		meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<EGridShape> Shape = Square;
+	EGridShape Shape = EGridShape::Square;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid|Modifiers",
 		meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<ETileType> TileType;
+	ETileType TileType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid|Modifiers|Colors",
 		meta = (AllowPrivateAccess = "true"))
@@ -55,7 +55,7 @@ public:
 	ACombatGridModifier();
 
 	bool GetUseTileHeight() const { return bUseTileHeight; }
-	TEnumAsByte<ETileType> GetTileType() const { return TileType; }
+	ETileType GetTileType() const { return TileType; }
 
 private:
 	void ConfigureMesh();

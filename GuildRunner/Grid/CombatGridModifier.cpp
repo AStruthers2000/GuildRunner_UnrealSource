@@ -34,22 +34,22 @@ void ACombatGridModifier::ConfigureMesh()
 	FLinearColor MeshColor = FLinearColor(0, 0, 0, 1);
 	switch (TileType)
 	{
-	case Normal:
+	case ETileType::Normal:
 		MeshColor = NormalObstacleColor;
 		break;
-	case Obstacle:
+	case ETileType::Obstacle:
 		MeshColor = BlockingObstacleColor;
 		break;
-	case DoubleCost:
+	case ETileType::DoubleCost:
 		MeshColor = DoubleObstacleColor;
 		break;
-	case TripleCost:
+	case ETileType::TripleCost:
 		MeshColor = TripleObstacleColor;
 		break;
-	case FlyingUnitsOnly:
+	case ETileType::FlyingUnitsOnly:
 		MeshColor = FlyingOnlyObstacleColor;
 		break;
-	case NoTile:
+	case ETileType::NoTile:
 	default: return;
 	}
 	StaticMeshComponent->SetVectorParameterValueOnMaterials("Color", FVector(MeshColor.R, MeshColor.G, MeshColor.B));

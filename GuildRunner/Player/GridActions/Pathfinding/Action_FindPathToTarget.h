@@ -40,7 +40,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float MaxMsPerFrame = 1.f;
 
-	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
+	TArray<ETileType> GetValidWalkingTiles() const;
 
 	UFUNCTION()
 	void OnSelectedTileChanged(const FIntPoint& Index);

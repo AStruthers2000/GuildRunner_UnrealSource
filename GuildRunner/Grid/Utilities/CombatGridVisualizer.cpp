@@ -113,7 +113,7 @@ void UCombatGridVisualizer::UpdateTileVisual_Tactical(const FTileData& Data)
 	if (bIsTacticalGridShowing)
 	{
 		TacticalGridMeshInstance->RemoveInstance(Data.Index);
-		if (Data.Type != NoTile)
+		if (Data.Type != ETileType::NoTile)
 		{
 			FTransform TacticalTileTransform;
 			TacticalTileTransform.SetLocation(Data.Transform.GetLocation());

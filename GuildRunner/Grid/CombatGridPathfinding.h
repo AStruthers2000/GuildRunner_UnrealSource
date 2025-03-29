@@ -78,7 +78,7 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	TArray<FIntPoint> FindPath(FIntPoint StartTile, FIntPoint TargetTile, bool bUsingDiagonals, bool bCalculatingRange,
-												   const TArray<TEnumAsByte<ETileType>>& ValidTileTypes, int32 Range);
+	                           const TArray<ETileType>& ValidTileTypes, int32 Range);
 
 	//UFUNCTION(BlueprintCallable)
 	//void ClearGeneratedPathfindingData();
@@ -90,7 +90,7 @@ private:
 
 	FIntPoint StartIndex;
 	FIntPoint TargetIndex;
-	TArray<TEnumAsByte<ETileType>> ValidWalkableTiles = {Normal, DoubleCost, TripleCost, FlyingUnitsOnly};
+	TArray<ETileType> ValidWalkableTiles = {ETileType::Normal, ETileType::DoubleCost, ETileType::TripleCost, ETileType::FlyingUnitsOnly};
 
 	/******************************************************************
 	 * Neighbor Checking
@@ -106,7 +106,7 @@ private:
 	TArray<FPathfindingData>
 	CheckPotentialNeighbors(const FIntPoint& Index, TArray<FIntPoint> AttemptedNeighbors) const;
 	bool ValidateNeighborIndex(const FTileData& InputTile, const FIntPoint& Neighbor,
-	                           const TArray<TEnumAsByte<ETileType>>& ValidTileTypes) const;
+	                           const TArray<ETileType>& ValidTileTypes) const;
 	static int32 CalculateCostToEnterTile(const FTileData& InputTile);
 	
 };

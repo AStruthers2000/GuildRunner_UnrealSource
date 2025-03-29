@@ -40,7 +40,7 @@ ACombatGrid::ACombatGrid()
  ******************************************************************/
 
 void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions,
-                            TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning)
+                            EGridShape TileShape, bool bUseEnvironmentForGridSpawning)
 {
 	//initialize global variables
 	GridCenterLocation = CentralSpawnLocation;
@@ -54,7 +54,7 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 
 	//create new grid from current selected instance
 	const auto* RowData = GetCurrentShapeData();
-	if (RowData && GridShape != NoDefinedShape)
+	if (RowData && GridShape != EGridShape::NoDefinedShape)
 	{
 		CombatGridVisual->InitializeGridVisual(this);
 
@@ -66,9 +66,9 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 		for (int32 x = 0; x < GridTileCount.X; x++)
 		{
 			//modify for loop because hexagons have to be special
-			const auto GridTileY = GridShape == Hexagon ? GridTileCount.Y * 2 : GridTileCount.Y;
+			const auto GridTileY = GridShape == EGridShape::Hexagon ? GridTileCount.Y * 2 : GridTileCount.Y;
 			//if GridShape is a hexagon and x is odd, we want to start on index 1. in all other cases, start at index 0
-			const auto GridOffsetY = GridShape == Hexagon && x % 2 != 0 ? 1 : 0;
+			const auto GridOffsetY = GridShape == EGridShape::Hexagon && x % 2 != 0 ? 1 : 0;
 
 			for (int32 y = GridOffsetY; y < GridTileY; y++)
 			{
@@ -86,10 +86,10 @@ void ACombatGrid::SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize
 				}
 				else
 				{
-					AddGridTile({Index, Normal, TileTransform});
+					AddGridTile({Index, ETileType::Normal, TileTransform});
 				}
 
-				if (GridShape == Hexagon)
+				if (GridShape == EGridShape::Hexagon)
 				{
 					++y;
 				}
@@ -128,7 +128,7 @@ void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_
 {
 	switch (GridShape)
 	{
-	case Square:
+	case EGridShape::Square:
 		{
 			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, GridTileSize);
 			const auto X = UGuildRunnerUtilities::IsFloatEven(GridTileCount.X) ? 0.f : 1.f;
@@ -138,7 +138,7 @@ void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_
 			Out_BottomLeft = Out_Center - FVector(LocationOffset.X, LocationOffset.Y, 0.f);
 			break;
 		}
-	case Triangle:
+	case EGridShape::Triangle:
 		{
 			const auto TriangleGridSize = GridTileSize * FVector(2.f, 1.f, 1.f);
 			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, TriangleGridSize);
@@ -149,7 +149,7 @@ void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_
 			Out_BottomLeft = Out_Center - TriangleSnap;
 			break;
 		}
-	case Hexagon:
+	case EGridShape::Hexagon:
 		{
 			const auto HexagonGridSize = GridTileSize * FVector(1.5f, 1.f, 1.f);
 			Out_Center = UGuildRunnerUtilities::SnapVectorToVector(GridCenterLocation, HexagonGridSize);
@@ -160,7 +160,7 @@ void ACombatGrid::FindGridCenterAndBottomLeft(FVector& Out_Center, FVector& Out_
 			Out_BottomLeft = Out_Center - TriangleSnap;
 			break;
 		}
-	case NoDefinedShape: //intentional fallthrough
+	case EGridShape::NoDefinedShape: //intentional fallthrough
 	default: break;
 	}
 }
@@ -170,7 +170,7 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 	TArray<FHitResult> Hits;
 	const auto TraceStart = Location + FVector(0.f, 0.f, 10000.f);
 	const auto TraceEnd = Location - FVector(0.f, 0.f, 100000.f);
-	const auto TraceRadius = GridTileSize.X / GridShape == Triangle ? 5.f : GridShape == Hexagon ? 4.f : 3.f;
+	const auto TraceRadius = GridTileSize.X / (GridShape == EGridShape::Triangle ? 5.f : GridShape == EGridShape::Hexagon ? 4.f : 3.f);
 	FCollisionQueryParams Params;
 	Params.bTraceComplex = false;
 	Params.AddIgnoredActor(this);
@@ -192,10 +192,10 @@ ETileType ACombatGrid::TraceForGround(const FVector& Location, FVector& Out_HitL
 	if (Hits.Num() == 0)
 	{
 		Out_HitLocation = Location;
-		return NoTile;
+		return ETileType::NoTile;
 	}
 
-	ETileType HitTileType = Normal;
+	ETileType HitTileType = ETileType::Normal;
 	bool bIsHeightFound = false;
 	for (const auto& HitResult : Hits)
 	{
@@ -233,16 +233,16 @@ FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) con
 	//each shape has a different location scale
 	switch (GridShape)
 	{
-	case Square:
+	case EGridShape::Square:
 		ScaledIndex *= {1.f, 1.f};
 		break;
-	case Triangle:
+	case EGridShape::Triangle:
 		ScaledIndex *= {1.f, 0.5f};
 		break;
-	case Hexagon:
+	case EGridShape::Hexagon:
 		ScaledIndex *= {0.75f, 0.5f};
 		break;
-	case NoDefinedShape: //intentional fallthrough
+	case EGridShape::NoDefinedShape: //intentional fallthrough
 	default: return {};
 	}
 
@@ -253,7 +253,7 @@ FVector ACombatGrid::GetTileLocationFromGridIndex(const FVector2D GridIndex) con
 FRotator ACombatGrid::GetTileRotationFromGridIndex(const FVector2D GridIndex) const
 {
 	//we only want to rotate triangles
-	if (GridShape != Triangle)
+	if (GridShape != EGridShape::Triangle)
 	{
 		return FRotator::ZeroRotator;
 	}
@@ -274,7 +274,7 @@ void ACombatGrid::AddStateToTile(const FIntPoint& Index, const ETileState State)
 	auto* Data = GridTiles.Find(Index);
 	if (Data)
 	{
-		if (State == Selected)
+		if (State == ETileState::Selected)
 		{
 			Data->TileSelected();
 		}
@@ -296,7 +296,7 @@ void ACombatGrid::RemoveStateFromTile(const FIntPoint& Index, const ETileState S
 	auto* Data = GridTiles.Find(Index);
 	if (Data)
 	{
-		if (State == Selected)
+		if (State == ETileState::Selected)
 		{
 			Data->TileDeselected();
 		}
@@ -331,7 +331,7 @@ void ACombatGrid::IncrementTimesTileIsInPath(const FIntPoint& Index)
 
 		if (Data->TimesTileIsInPath > 0)
 		{
-			AddStateToTile(Index, IsInPath);
+			AddStateToTile(Index, ETileState::IsInPath);
 		}
 	}
 }
@@ -345,7 +345,7 @@ void ACombatGrid::DecrementTimesTileIsInPath(const FIntPoint& Index)
 
 		if (Data->TimesTileIsInPath <= 0)
 		{
-			RemoveStateFromTile(Index, IsInPath);
+			RemoveStateFromTile(Index, ETileState::IsInPath);
 		}
 	}
 }
@@ -385,7 +385,7 @@ void ACombatGrid::ClearStateFromTiles(ETileState State)
 	}
 }
 
-TEnumAsByte<EGridShape> ACombatGrid::GetGridShape() const
+EGridShape ACombatGrid::GetGridShape() const
 {
 	return GridShape;
 }
@@ -447,7 +447,7 @@ FVector ACombatGrid::GetCursorLocationOnGrid(int32 PlayerIndex)
 	return FVector(-999, -999, -999);
 }
 
-FIntPoint ACombatGrid::GetTileIndexFromWorldLocation(const FVector Location)
+FIntPoint ACombatGrid::GetTileIndexFromWorldLocation(const FVector Location) const
 {
 	const auto LocationOnGrid = Location - GridBottomLeftCornerLocation;
 	FVector SnappedVector;
@@ -456,13 +456,13 @@ FIntPoint ACombatGrid::GetTileIndexFromWorldLocation(const FVector Location)
 	FIntPoint Index;
 	switch (GridShape)
 	{
-	case Square:
+	case EGridShape::Square:
 		SnappedVector = UGuildRunnerUtilities::SnapVectorToVector(LocationOnGrid, GridTileSize);
 		SnappedLocationOnGrid = FVector2D(SnappedVector);
 		TempIndex = UKismetMathLibrary::Divide_Vector2DVector2D(SnappedLocationOnGrid, FVector2D(GridTileSize));
 		Index = TempIndex.IntPoint();
 		break;
-	case Hexagon:
+	case EGridShape::Hexagon:
 		SnappedVector = UGuildRunnerUtilities::SnapVectorToVector(LocationOnGrid * FVector(1.0, 2.0, 1.0),
 		                                                          GridTileSize * FVector(0.75, 0.25, 1.0));
 		SnappedLocationOnGrid = FVector2D(SnappedVector);
@@ -483,14 +483,14 @@ FIntPoint ACombatGrid::GetTileIndexFromWorldLocation(const FVector Location)
 			};
 		}
 		break;
-	case Triangle:
+	case EGridShape::Triangle:
 		SnappedVector =
 			UGuildRunnerUtilities::SnapVectorToVector(LocationOnGrid, GridTileSize / FVector(1.0, 2.0, 1.0));
 		SnappedLocationOnGrid = FVector2D(SnappedVector);
 		TempIndex = UKismetMathLibrary::Divide_Vector2DVector2D(SnappedLocationOnGrid, FVector2D(GridTileSize));
 		Index = (TempIndex * FVector2D(1.0, 2.0)).IntPoint();
 		break;
-	case NoTile:
+	case ETileType::NoTile:
 	default:
 		return {-999, -999};
 	}

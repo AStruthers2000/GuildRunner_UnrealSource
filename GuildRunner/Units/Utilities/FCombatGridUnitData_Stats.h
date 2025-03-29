@@ -10,7 +10,7 @@ struct FCombatGridUnitData_Stats
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TEnumAsByte<ETileType>> ValidTileTypes = {Normal, DoubleCost, TripleCost};
+	TArray<ETileType> ValidTileTypes = {ETileType::Normal, ETileType::DoubleCost, ETileType::TripleCost};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanMoveDiagonally = false;

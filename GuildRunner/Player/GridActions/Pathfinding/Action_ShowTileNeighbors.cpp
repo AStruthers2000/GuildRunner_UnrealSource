@@ -20,12 +20,12 @@ void AAction_ShowTileNeighbors::ExecuteGridAction(FIntPoint TileIndex)
 		return;
 	}
 
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsNeighbor);
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(ETileState::IsNeighbor);
 	auto Neighbors = PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->GetValidTileNeighbors(
 		TileIndex, bIncludeDiagonals);
 	for (auto& [Index, CostToEnterTile, CostFromStart, MinimumCostToTarget, PreviousTile] : Neighbors)
 	{
-		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Index, IsNeighbor);
+		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Index, ETileState::IsNeighbor);
 	}
 }
 

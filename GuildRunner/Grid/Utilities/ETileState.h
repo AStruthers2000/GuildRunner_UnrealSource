@@ -3,7 +3,7 @@
 #include "ETileState.generated.h"
 
 UENUM(BlueprintType)
-enum ETileState : uint8
+enum class ETileState : uint8
 {
 	None,
 	Hovered,

@@ -31,24 +31,24 @@ void UTileSelectionManager::UpdateTileUnderCursor()
 	if (HoveredTile != NewTileIndex)
 	{
 		//first remove the state from the old hovered tile
-		GridReference->RemoveStateFromTile(HoveredTile, Hovered);
+		GridReference->RemoveStateFromTile(HoveredTile, ETileState::Hovered);
 
 		//now update the new hovered tile
 		HoveredTile = NewTileIndex;
-		GridReference->AddStateToTile(HoveredTile, Hovered);
+		GridReference->AddStateToTile(HoveredTile, ETileState::Hovered);
 	}
 }
 
 
 void UTileSelectionManager::DeselectTile(const FIntPoint& Index)
 {
-	GridReference->RemoveStateFromTile(Index, Selected);
+	GridReference->RemoveStateFromTile(Index, ETileState::Selected);
 	SetSelectedTile(FPATHFINDINGDATA_DEFAULT_INDEX);
 }
 
 void UTileSelectionManager::SelectTile(const FIntPoint& Index)
 {
-	GridReference->AddStateToTile(Index, Selected);
+	GridReference->AddStateToTile(Index, ETileState::Selected);
 	SetSelectedTile(Index);
 }
 

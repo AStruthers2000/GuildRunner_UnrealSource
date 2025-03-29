@@ -72,13 +72,13 @@ void AAction_MoveUnitOnGrid::OnPathfindingCompleted(const TArray<FIntPoint>& Pat
 	
 	if (Path.Num() > 0)
 	{
-		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), PathfindingTarget);
+		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), ETileState::PathfindingTarget);
 	}
 
 	
 	CurrentUnit->GetCombatGridUnitMovement()->SetMoveDurationPerTile(MoveDurationPerTile);
 	CurrentUnit->GetCombatGridUnitMovement()->UnitFollowPath(Path);
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(ETileState::IsReachable);
 	PlayerGridActions->DeselectCurrentTile();
 }
 

@@ -161,5 +161,5 @@ void ACombatSystem::OnUnitReachedNewTile(ACombatGridUnit* Unit, const FIntPoint&
 void ACombatSystem::OnUnitFinishedPathfinding(ACombatGridUnit* Unit)
 {
 	ManagedGrid->DecrementTimesTileIsInPath(Unit->GetIndexOnGrid());
-	ManagedGrid->RemoveStateFromTile(Unit->GetIndexOnGrid(), PathfindingTarget);
+	ManagedGrid->RemoveStateFromTile(Unit->GetIndexOnGrid(), ETileState::PathfindingTarget);
 }

@@ -3,7 +3,7 @@
 #include "ETileType.generated.h"
 
 UENUM(BlueprintType)
-enum ETileType
+enum class ETileType : uint8
 {
 	NoTile,
 	Normal,

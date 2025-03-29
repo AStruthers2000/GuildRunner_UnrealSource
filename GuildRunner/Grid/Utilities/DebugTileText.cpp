@@ -106,7 +106,7 @@ void ADebugTileText::UpdateTextOnTile(const FIntPoint& Index)
 
 		if (bShowTileType)
 		{
-			if (TileData->Type != Normal)
+			if (TileData->Type != ETileType::Normal)
 			{
 				Text.Add(FString::Printf(TEXT("%s"), *UEnum::GetValueAsString(TileData->Type)));
 			}
@@ -187,32 +187,32 @@ void ADebugTileText::UpdateStateOnTile(const FIntPoint& Index)
 	{
 		if (GridRef->GetGridPathfinding()->GetDiscoveredTileIndices().Contains(Index))
 		{
-			GridRef->AddStateToTile(Index, IsDiscovered);
+			GridRef->AddStateToTile(Index, ETileState::IsDiscovered);
 		}
 		else
 		{
-			GridRef->RemoveStateFromTile(Index, IsDiscovered);
+			GridRef->RemoveStateFromTile(Index, ETileState::IsDiscovered);
 		}
 	}
 	else
 	{
-		GridRef->RemoveStateFromTile(Index, IsDiscovered);
+		GridRef->RemoveStateFromTile(Index, ETileState::IsDiscovered);
 	}
 
 	if (bShowAnalyzedTiles)
 	{
 		if (GridRef->GetGridPathfinding()->GetAnalyzedTileIndices().Contains(Index))
 		{
-			GridRef->AddStateToTile(Index, IsAnalyzed);
+			GridRef->AddStateToTile(Index, ETileState::IsAnalyzed);
 		}
 		else
 		{
-			GridRef->RemoveStateFromTile(Index, IsAnalyzed);
+			GridRef->RemoveStateFromTile(Index, ETileState::IsAnalyzed);
 		}
 	}
 	else
 	{
-		GridRef->RemoveStateFromTile(Index, IsAnalyzed);
+		GridRef->RemoveStateFromTile(Index, ETileState::IsAnalyzed);
 	}
 }
 
@@ -227,8 +227,8 @@ void ADebugTileText::UpdateStateOnAllTiles()
 	}
 	else
 	{
-		GridRef->ClearStateFromTiles(IsDiscovered);
-		GridRef->ClearStateFromTiles(IsAnalyzed);
+		GridRef->ClearStateFromTiles(ETileState::IsDiscovered);
+		GridRef->ClearStateFromTiles(ETileState::IsAnalyzed);
 	}
 }
 

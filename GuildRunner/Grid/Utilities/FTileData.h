@@ -19,13 +19,13 @@ struct FTileData
 	FIntPoint Index = {0, 0};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TEnumAsByte<ETileType> Type = NoTile;
+	ETileType Type = ETileType::NoTile;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform Transform;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TEnumAsByte<ETileState>> States;
+	TArray<ETileState> States;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 TimesSelected = 0;

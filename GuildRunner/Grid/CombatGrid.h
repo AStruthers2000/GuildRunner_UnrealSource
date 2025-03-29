@@ -42,7 +42,7 @@ class GUILDRUNNER_API ACombatGrid : public AActor
 	FVector2D GridTileCount = {10, 10};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<EGridShape> GridShape = Square;
+	EGridShape GridShape = EGridShape::Square;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GuildRunner|Grid", meta = (AllowPrivateAccess = "true"))
 	bool bRefreshGrid;
@@ -71,7 +71,7 @@ private:
 	 ******************************************************************/
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector CentralSpawnLocation, FVector SingleTileSize, FVector2D GridDimensions,
-	               TEnumAsByte<EGridShape> TileShape, bool bUseEnvironmentForGridSpawning = true);
+	               EGridShape TileShape, bool bUseEnvironmentForGridSpawning = true);
 
 public:
 	void AddGridTile(const FTileData& TileData);
@@ -98,7 +98,7 @@ public:
 	FRotator GetTileRotationFromGridIndex(FVector2D GridIndex) const;
 	FVector GetTileScale() const;
 	FVector GetGridTileSize() const { return GridTileSize; }
-	TEnumAsByte<EGridShape> GetGridShape() const;
+	EGridShape GetGridShape() const;
 	const FGridShapeData* GetCurrentShapeData() const;
 	void AddStateToTile(const FIntPoint& Index, ETileState State);
 	void RemoveStateFromTile(const FIntPoint& Index, ETileState State);
@@ -131,7 +131,7 @@ private:
 	UFUNCTION(BlueprintCallable)
 	FVector GetCursorLocationOnGrid(int32 PlayerIndex);
 	UFUNCTION(BlueprintCallable)
-	FIntPoint GetTileIndexFromWorldLocation(FVector Location);
+	FIntPoint GetTileIndexFromWorldLocation(FVector Location) const;
 
 public:
 	UFUNCTION(BlueprintCallable)

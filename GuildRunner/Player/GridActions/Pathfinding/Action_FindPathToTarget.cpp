@@ -55,7 +55,7 @@ void AAction_FindPathToTarget::OnPathfindingCompleted(const TArray<FIntPoint>& P
 
 	if (Path.Num() > 0)
 	{
-		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), PathfindingTarget);
+		PlayerGridActions->GetCombatGridReference()->AddStateToTile(Path.Last(), ETileState::PathfindingTarget);
 	}
 }
 
@@ -66,12 +66,12 @@ void AAction_FindPathToTarget::OnSelectedTileChanged(const FIntPoint& Index)
 }
 
 
-TArray<TEnumAsByte<ETileType>> AAction_FindPathToTarget::GetValidWalkingTiles() const
+TArray<ETileType> AAction_FindPathToTarget::GetValidWalkingTiles() const
 {
-	TArray<TEnumAsByte<ETileType>> ValidTiles = {Normal, DoubleCost, TripleCost};
+	TArray ValidTiles = {ETileType::Normal, ETileType::DoubleCost, ETileType::TripleCost};
 	if (bFlyingUnit)
 	{
-		ValidTiles.Add(FlyingUnitsOnly);
+		ValidTiles.Add(ETileType::FlyingUnitsOnly);
 	}
 
 	return ValidTiles;

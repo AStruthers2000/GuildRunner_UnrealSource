@@ -21,5 +21,5 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<ETileType> TileType = NoTile;
+	ETileType TileType = ETileType::NoTile;
 };

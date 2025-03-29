@@ -16,7 +16,7 @@ void AAction_SelectTileAndReachable::ExecuteGridAction(FIntPoint TileIndex)
 
 	if (TileIndex != LastGeneratedReachablesOn)
 	{
-		PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
+		PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(ETileState::IsReachable);
 	}
 
 	if (PlayerGridActions->GetSelectedTile() == TileIndex)
@@ -29,7 +29,7 @@ void AAction_SelectTileAndReachable::EndPlay(const EEndPlayReason::Type EndPlayR
 {
 	Super::EndPlay(EndPlayReason);
 
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(ETileState::IsReachable);
 }
 
 void AAction_SelectTileAndReachable::GenerateReachables()
@@ -48,7 +48,7 @@ void AAction_SelectTileAndReachable::GenerateReachables()
 		return;
 	}
 
-	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(IsReachable);
+	PlayerGridActions->GetCombatGridReference()->ClearStateFromTiles(ETileState::IsReachable);
 	
 	PlayerGridActions->GetCombatGridReference()->GetGridPathfinding()->OnReachableTilesCompleted.AddDynamic(
 		this, &AAction_SelectTileAndReachable::OnPathfindingCompleted);
@@ -99,7 +99,7 @@ void AAction_SelectTileAndReachable::Tick(float DeltaSeconds)
 			else
 			{
 				const auto TileIndex = TilesToUpdateState.Pop();
-				PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileIndex, IsReachable);
+				PlayerGridActions->GetCombatGridReference()->AddStateToTile(TileIndex, ETileState::IsReachable);
 			}
 			FrameNow = FPlatformTime::ToMilliseconds64(FPlatformTime::Cycles64()) - FrameStart;
 		}
@@ -125,12 +125,12 @@ void AAction_SelectTileAndReachable::OnPathfindingCompleted(const TArray<FIntPoi
 }
 
 
-TArray<TEnumAsByte<ETileType>> AAction_SelectTileAndReachable::GetValidWalkingTiles() const
+TArray<ETileType> AAction_SelectTileAndReachable::GetValidWalkingTiles() const
 {
-	TArray<TEnumAsByte<ETileType>> ValidTiles = {Normal, DoubleCost, TripleCost};
+	TArray ValidTiles = {ETileType::Normal, ETileType::DoubleCost, ETileType::TripleCost};
 	if (bFlyingUnit)
 	{
-		ValidTiles.Add(FlyingUnitsOnly);
+		ValidTiles.Add(ETileType::FlyingUnitsOnly);
 	}
 
 	return ValidTiles;

@@ -33,7 +33,7 @@ void AAction_AddTile::ExecuteGridAction(FIntPoint TileIndex)
 
 		FTileData NewTileData;
 		NewTileData.Index = TileIndex;
-		NewTileData.Type = Normal;
+		NewTileData.Type = ETileType::Normal;
 		NewTileData.Transform = NewTileTransform;
 
 		PlayerGridActions->GetCombatGridReference()->AddGridTile(NewTileData);

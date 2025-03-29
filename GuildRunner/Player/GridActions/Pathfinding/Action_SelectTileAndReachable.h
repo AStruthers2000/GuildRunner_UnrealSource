@@ -53,5 +53,5 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float m_FrameDelayForDrawingReachables = 0.333f;
 
-	TArray<TEnumAsByte<ETileType>> GetValidWalkingTiles() const;
+	TArray<ETileType> GetValidWalkingTiles() const;
 };

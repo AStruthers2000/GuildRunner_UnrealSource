@@ -20,8 +20,8 @@ class GUILDRUNNER_API UAbilityDataAsset : public UPrimaryDataAsset
 	FName AbilityName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	UAbilityStatsDataAsset* AbilityStats;
+	UAbilityAssetsDataAsset* AbilityAssets;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	UAbilityAssetsDataAsset* AbilityAssets;
+	UAbilityStatsDataAsset* AbilityStats;
 };

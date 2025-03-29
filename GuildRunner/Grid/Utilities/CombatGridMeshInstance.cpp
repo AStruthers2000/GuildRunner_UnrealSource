@@ -4,6 +4,9 @@
 #include "CombatGridMeshInstance.h"
 
 #include "ETileState.h"
+#include "LightmapResRatioAdjust.h"
+#include "ToolContextInterfaces.h"
+#include "Animation/MovieScene2DTransformSection.h"
 #include "Components/InstancedStaticMeshComponent.h"
 
 // Sets default values
@@ -18,9 +21,9 @@ UCombatGridMeshInstance::UCombatGridMeshInstance()
 	InstancedMesh->NumCustomDataFloats = 4;
 }
 
-void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const TEnumAsByte<ETileType> Type,
+void UCombatGridMeshInstance::AddInstance(const FIntPoint& Index, const ETileType Type,
                                           const FTransform& Transform,
-                                          const TArray<TEnumAsByte<ETileState>>& TileStates)
+                                          const TArray<ETileState>& TileStates)
 {
 	//removes the index first before adding it, effectively updating the transform
 	RemoveInstance(Index);
@@ -67,8 +70,8 @@ void UCombatGridMeshInstance::AdjustInstanceMeshOffsetFromGround(const float Off
 	InstancedMesh->SetWorldLocation(FVector(Location.X, Location.Y, Offset));
 }
 
-FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<TEnumAsByte<ETileState>>& States,
-                                                                   const TEnumAsByte<ETileType>& TileType,
+FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<ETileState>& States,
+                                                                   const ETileType& TileType,
                                                                    float& IsFilledValue)
 {
 	IsFilledValue = 0.f;
@@ -78,17 +81,17 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<
 		IsFilledValue = 1.f;
 		switch (TileType)
 		{
-		case Normal:
+		case ETileType::Normal:
 			return NormalCostColor;
-		case DoubleCost:
+		case ETileType::DoubleCost:
 			return DoubleCostColor;
-		case TripleCost:
+		case ETileType::TripleCost:
 			return TripleCostColor;
-		case FlyingUnitsOnly:
+		case ETileType::FlyingUnitsOnly:
 			return FlyingUnitsOnlyColor;
-		case Obstacle:
+		case ETileType::Obstacle:
 			return ObstacleColor;
-		case NoTile:
+		case ETileType::NoTile:
 		default:
 			return FLinearColor(0, 0, 0, 1);
 		}
@@ -100,31 +103,42 @@ FLinearColor UCombatGridMeshInstance::GetColorFromStatesOrTileType(const TArray<
 			return FLinearColor(0, 0, 0, 1);
 		}
 
+		auto OrderedStates = {
+			ETileState::Selected,
+			ETileState::Hovered,
+			ETileState::PathfindingTarget,
+			ETileState::IsReachable,
+			ETileState::IsInPath,
+			ETileState::IsNeighbor,
+			ETileState::IsDiscovered,
+			ETileState::IsAnalyzed
+		};
+
 		//this list is the priority of our colors
-		for (const auto& State : {Selected, Hovered, PathfindingTarget, IsReachable, IsInPath, IsNeighbor, IsDiscovered, IsAnalyzed})
+		for (const auto& State : OrderedStates)
 		{
 			if (States.Contains(State))
 			{
 				IsFilledValue = 1.f;
 				switch (State)
 				{
-				case Selected:
+				case ETileState::Selected:
 					return SelectedColor;
-				case Hovered:
+				case ETileState::Hovered:
 					return HoveredColor;
-				case PathfindingTarget:
+				case ETileState::PathfindingTarget:
 					return PathfindingTargetColor;
-				case IsNeighbor:
+				case ETileState::IsNeighbor:
 					return NeighborColor;
-				case IsInPath:
+				case ETileState::IsInPath:
 					return InPathColor;
-				case IsDiscovered:
+				case ETileState::IsDiscovered:
 					return DiscoveredColor;
-				case IsAnalyzed:
+				case ETileState::IsAnalyzed:
 					return AnalyzedColor;
-				case IsReachable:
+				case ETileState::IsReachable:
 					return ReachableColor;
-				case None:
+				case ETileState::None:
 				default:
 					IsFilledValue = 0.f;
 					return FLinearColor(0, 0, 0, 1);

@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "AbilityMappingDataAsset.generated.h"
+#include "AbilityRegistryDataAsset.generated.h"
 
 class UAbilityDataAsset;
 /**
  * 
  */
 UCLASS()
-class GUILDRUNNER_API UAbilityMappingDataAsset : public UPrimaryDataAsset
+class GUILDRUNNER_API UAbilityRegistryDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

@@ -3,9 +3,9 @@
 #include "EAbilityCastingRangeType.generated.h"
 
 UENUM(BlueprintType)
-enum EAbilityCastingRangeType
+enum class EAbilityCastingRangeType : uint8
 {
-	Self,
-	Melee,
-	Ranged
+	Self		UMETA(DisplayName = "Self Only"),
+	Melee		UMETA(DisplayName = "Melee Distance"),
+	Ranged		UMETA(DisplayName = "Ranged Distance"),
 };

@@ -61,8 +61,8 @@ public:
 	UCombatGridMeshInstance();
 
 	UFUNCTION(BlueprintCallable)
-	void AddInstance(const FIntPoint& Index, const TEnumAsByte<ETileType> Type, const FTransform& Transform,
-	                 const TArray<TEnumAsByte<ETileState>>& TileStates);
+	void AddInstance(const FIntPoint& Index, ETileType Type, const FTransform& Transform,
+	                 const TArray<ETileState>& TileStates);
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveInstance(const FIntPoint& Index);
@@ -77,8 +77,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AdjustInstanceMeshOffsetFromGround(const float Offset);
 
-	FLinearColor GetColorFromStatesOrTileType(const TArray<TEnumAsByte<ETileState>>& States,
-	                                          const TEnumAsByte<ETileType>& TileType, float& IsFilledValue);
+	FLinearColor GetColorFromStatesOrTileType(const TArray<ETileState>& States,
+	                                          const ETileType& TileType, float& IsFilledValue);
 
 	void HideInstancedStaticMeshInGame(bool bHidden) const;
 

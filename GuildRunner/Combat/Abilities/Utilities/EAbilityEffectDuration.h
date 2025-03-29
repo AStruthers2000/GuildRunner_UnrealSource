@@ -5,7 +5,7 @@
 UENUM(BlueprintType)
 enum class EAbilityEffectDuration : uint8
 {
-	Instant,
-	PerTurn,
-	Permanent
+	Instant		UMETA(DisplayName = "Instant"),
+	PerTurn		UMETA(DisplayName = "Per Turn"),
+	Permanent	UMETA(DisplayName = "Permanent"),
 };

@@ -6,7 +6,6 @@
 #include "Engine/DataAsset.h"
 #include "AbilityAssetsDataAsset.generated.h"
 
-class UImage;
 class AAbilityVisualization;
 /**
  * 
@@ -19,8 +18,8 @@ class GUILDRUNNER_API UAbilityAssetsDataAsset : public UPrimaryDataAsset
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities|Assets", meta = (AllowPrivateAccess = "true"))
 	FName AbilityDisplayName;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities|Assets", meta = (AllowPrivateAccess = "true"))
-	//UImage* AbilityIcon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities|Assets", meta = (AllowPrivateAccess = "true"))
+	UTexture2D* Icon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities|Assets", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AAbilityVisualization> AbilityVisualizationClass;

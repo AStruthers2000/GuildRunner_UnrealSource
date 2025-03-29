@@ -16,7 +16,7 @@ const FGridShapeData* UGridShapeUtilities::GetShapeData(EGridShape Shape)
 		return nullptr;
 	}
 
-	if (Shape == NoDefinedShape)
+	if (Shape == EGridShape::NoDefinedShape)
 	{
 		UE_LOG(LogTemp, Warning,
 		       TEXT("[UGuildRunnerUtilities::GetShapeData]:\tWarning: No defined shape selected, cannot spawn grid."));
@@ -30,7 +30,7 @@ const FGridShapeData* UGridShapeUtilities::GetShapeData(EGridShape Shape)
 
 bool UGridShapeUtilities::IsTileTypeWalkable(const ETileType TileType)
 {
-	const TArray NonWalkableTiles = {NoTile, Obstacle};
+	const TArray NonWalkableTiles = {ETileType::NoTile, ETileType::Obstacle};
 	return !NonWalkableTiles.Contains(TileType);
 }
 
