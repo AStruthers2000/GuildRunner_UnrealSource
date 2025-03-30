@@ -3,6 +3,7 @@
 
 #include "CombatSystem.h"
 
+#include "Abilities/AbilityManager.h"
 #include "Algo/ForEach.h"
 #include "GuildRunner/Grid/CombatGrid.h"
 #include "GuildRunner/Units/CombatGridUnit.h"
@@ -12,6 +13,7 @@ ACombatSystem::ACombatSystem()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	AbilityManager = CreateDefaultSubobject<UAbilityManager>(TEXT("Ability Manager Component"));
 	ManagedGrid = nullptr;
 }
 

@@ -7,6 +7,7 @@
 #include "GuildRunner/Grid/Utilities/FTileData.h"
 #include "CombatSystem.generated.h"
 
+class UAbilityManager;
 class ACombatGridUnit;
 class ACombatGrid;
 
@@ -130,6 +131,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ACombatGrid* ManagedGrid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UAbilityManager* AbilityManager;
 	
 	UPROPERTY()
 	TArray<ACombatGridObject*> ObjectsInCombat;

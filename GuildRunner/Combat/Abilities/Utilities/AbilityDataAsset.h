@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
 #include "AbilityDataAsset.generated.h"
 
@@ -17,7 +18,7 @@ class GUILDRUNNER_API UAbilityDataAsset : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	FName AbilityName;
+	FGameplayTag AbilityName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
 	UAbilityAssetsDataAsset* AbilityAssets;
